@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>High Country Atlas</title>
+  <meta name="description" content="A detailed topographic atlas of Victoria's High Country — peaks, huts, tracks, rivers and parks.">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Ccircle cx='8' cy='8' r='7' fill='%23cfe0d0'/%3E%3Cpath d='M2.5 12l3.5-6 2 3 2-4 3.5 7z' fill='%234a5a3a'/%3E%3Cpath d='M9 6.2l1-1.2 1 1.8z' fill='%23fff'/%3E%3C/svg%3E">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fira+Sans+Condensed:ital,wght@0,400;0,500;0,600;1,400&family=PT+Serif:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+  <link href="https://unpkg.com/maplibre-gl@5.24.0/dist/maplibre-gl.css" rel="stylesheet">
+  <link href="app.css" rel="stylesheet">
+</head>
+<body>
+  <div id="map"></div>
+
+  <div class="card search" role="search">
+    <div class="brand">High Country <em>Atlas</em></div>
+    <div class="search-box">
+      <input id="q" type="search" placeholder="Search peaks, huts, towns, rivers…" autocomplete="off" spellcheck="false" aria-label="Search places">
+      <ul id="results" role="listbox" hidden></ul>
+    </div>
+  </div>
+
+  <div class="card panel" id="panel">
+    <button class="panel-toggle" id="panel-toggle" aria-expanded="true">Map options</button>
+    <div class="panel-body">
+      <div class="label">Map style</div>
+      <div class="seg" id="theme">
+        <button data-theme="atlas" class="on">Atlas</button>
+        <button data-theme="topo">Topo</button>
+      </div>
+      <div class="label">Layers</div>
+      <label><input type="checkbox" data-group="relief" checked> Relief shading</label>
+      <label><input type="checkbox" data-group="contours" checked> Contour lines</label>
+      <label><input type="checkbox" data-group="landcover" checked> Land cover</label>
+      <label><input type="checkbox" data-group="parks" checked> Parks &amp; reserves</label>
+      <label><input type="checkbox" data-group="outdoor" checked> Huts, camps &amp; lookouts</label>
+      <label><input type="checkbox" id="terrain3d"> 3D terrain</label>
+    </div>
+  </div>
+
+  <script src="https://unpkg.com/maplibre-gl@5.24.0/dist/maplibre-gl.js"></script>
+  <script src="https://unpkg.com/maplibre-contour@0.1.1/dist/index.min.js"></script>
+  <script src="style.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
