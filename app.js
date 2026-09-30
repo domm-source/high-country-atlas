@@ -5,11 +5,12 @@ const HIGH_COUNTRY = { center: [146.95, -36.95], zoom: 8.6, bounds: [[144.3, -38
 const demSource = new mlcontour.DemSource({ url: TERRARIUM, encoding: 'terrarium', maxzoom: 13, worker: true });
 demSource.setupMaplibre(maplibregl);
 
-const state = { theme: 'atlas', visible: {}, terrain: false };
+const EMPTY = { type: 'FeatureCollection', features: [] };
+const state = { theme: 'atlas', visible: {}, terrain: false, closures: EMPTY };
 
 const map = new maplibregl.Map({
   container: 'map',
-  style: buildStyle(state.theme, demSource, state.visible),
+  style: buildStyle(state.theme, demSource, state.visible, state.closures),
   center: HIGH_COUNTRY.center,
   zoom: HIGH_COUNTRY.zoom,
   maxBounds: HIGH_COUNTRY.bounds,
@@ -50,7 +51,7 @@ map.on('styleimagemissing', (e) => {
 
 // ---------- Style & layer controls ----------
 function applyStyle() {
-  map.setStyle(buildStyle(state.theme, demSource, state.visible), { diff: false });
+  map.setStyle(buildStyle(state.theme, demSource, state.visible, state.closures), { diff: false });
   map.once('styledata', () => applyTerrain());
 }
 function applyTerrain() {
@@ -109,6 +110,54 @@ for (const id of ['peak-major', 'peak-mid', 'peak-all', 'poi-outdoor', 'saddle']
   map.on('mouseenter', id, () => { map.getCanvas().style.cursor = 'pointer'; });
   map.on('mouseleave', id, () => { map.getCanvas().style.cursor = ''; });
 }
+
+// ---------- Live road & track closures (Vicmap, via the DataVic open data service) ----------
+const CLOSURES_WFS = 'https://opendata.maps.vic.gov.au/geoserver/wfs';
+const REASON_LABEL = { SeasonClosureUpd: 'Seasonal closure', 'Seasonal Closure': 'Seasonal closure' };
+const closureStatus = document.getElementById('closure-status');
+const fmtDate = (iso) => new Date(iso).toLocaleDateString('en-AU', { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'Australia/Melbourne' });
+
+async function loadClosures() {
+  // Only closures in effect today, within the High Country, fetched fresh on each visit.
+  const today = new Date().toLocaleDateString('en-CA', { timeZone: 'Australia/Melbourne' }); // YYYY-MM-DD
+  const params = new URLSearchParams({
+    service: 'WFS', version: '2.0.0', request: 'GetFeature', outputFormat: 'application/json', srsName: 'EPSG:4326',
+    typeNames: 'open-data-platform:paim_vm_tr_road_closures',
+    propertyName: 'ezi_road_name_label,status,reason,statusnote,closure_date,reopen_date,comments,geom',
+    CQL_FILTER: `BBOX(geom,145.5,-37.9,148.3,-36.1,'EPSG:4326') AND status <> 'Open' AND closure_date <= '${today}'`
+              + ` AND (reopen_date >= '${today}' OR reopen_date IS NULL)`,
+  });
+  try {
+    const res = await fetch(`${CLOSURES_WFS}?${params}`);
+    if (!res.ok) throw new Error(res.status);
+    state.closures = await res.json();
+    // The fetch can beat the map's first style load; if so, apply the data once the source exists.
+    if (map.getSource('closures')) map.getSource('closures').setData(state.closures);
+    else map.once('load', () => map.getSource('closures').setData(state.closures));
+    const n = state.closures.features.length;
+    closureStatus.textContent = `${n} active · live from Vicmap`;
+  } catch (err) {
+    console.warn('Could not load closures', err);
+    closureStatus.textContent = 'Closures unavailable right now';
+  }
+}
+loadClosures();
+
+function showClosurePopup(lngLat, p) {
+  const el = document.createElement('div');
+  const add = (cls, text) => { const d = el.appendChild(document.createElement('div')); d.className = cls; d.textContent = text; return d; };
+  add('pop-name', p.ezi_road_name_label || 'Unnamed track');
+  add('pop-closed', `${p.status || 'Closed'} · ${REASON_LABEL[p.reason] || p.reason || 'Reason not given'}`);
+  add('pop-meta', [p.closure_date && `Since ${fmtDate(p.closure_date)}`,
+                   p.reopen_date ? `reopens ${fmtDate(p.reopen_date)}` : 'no reopen date set'].filter(Boolean).join(' · '));
+  const note = [p.statusnote, p.comments].map((x) => (x || '').trim()).filter((x, i, a) => x && a.indexOf(x) === i).join(' — ');
+  if (note) add('pop-note', note.length > 220 ? `${note.slice(0, 220)}…` : note);
+  add('pop-meta pop-caveat', 'Always check with Parks Victoria or DEECA before you travel.');
+  popup.setLngLat(lngLat).setDOMContent(el).addTo(map);
+}
+map.on('click', 'closure-hit', (e) => showClosurePopup(e.lngLat, e.features[0].properties));
+map.on('mouseenter', 'closure-hit', () => { map.getCanvas().style.cursor = 'pointer'; });
+map.on('mouseleave', 'closure-hit', () => { map.getCanvas().style.cursor = ''; });
 
 // ---------- Search ----------
 const WEIGHT = { city: 10, town: 10, resort: 9, village: 8, peak: 7, hut: 6, park: 5, lake: 5, river: 5,

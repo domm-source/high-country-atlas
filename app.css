@@ -45,6 +45,10 @@ html, body { margin: 0; height: 100%; background: #f3efe4; color: var(--ink);
 .maplibregl-popup-tip { border-top-color: var(--paper) !important; border-bottom-color: var(--paper) !important; }
 .pop-name { font: 700 15px "PT Serif", Georgia, serif; }
 .pop-meta { color: var(--muted); font-size: 12px; }
+.pop-closed { color: #b3191b; font-weight: 600; margin: 1px 0; }
+.pop-note { margin-top: 4px; font-size: 12.5px; }
+.pop-caveat { margin-top: 6px; font-style: italic; }
+.panel .status { color: var(--muted); font-size: 11.5px; margin: -2px 0 4px 22px; }
 
 @media (max-width: 600px) {
   .panel { bottom: 30px; padding: 0; }

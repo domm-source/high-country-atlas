@@ -11,7 +11,7 @@ const THEMES = {
     contour: '#b0875a', contourIndex: '#98703f', contourLabel: '#8a6238',
     casing: '#a79b87', motorway: '#c23b2f', primary: '#d2553f', secondary: '#e38b4e',
     tertiary: '#fff7e6', minor: '#ffffff', track: '#7a4a24', path: '#b3322a',
-    boundary: '#9b7fa6', text: '#2b2620', textMuted: '#5a5144', halo: '#f7f4ec',
+    boundary: '#9b7fa6', closed: '#d11f1f', text: '#2b2620', textMuted: '#5a5144', halo: '#f7f4ec',
     peak: '#5a3d24', hut: '#8c2f22', camp: '#2f6b3b', lookout: '#6a4a8a',
   },
   topo: {
@@ -23,7 +23,7 @@ const THEMES = {
     contour: '#c2986a', contourIndex: '#a8784a', contourLabel: '#95683c',
     casing: '#8e8e8e', motorway: '#f0b43c', primary: '#f6cf62', secondary: '#fbe39a',
     tertiary: '#ffffff', minor: '#ffffff', track: '#6b5b4b', path: '#b0413e',
-    boundary: '#a37cb5', text: '#1f2328', textMuted: '#4f5660', halo: '#ffffff',
+    boundary: '#a37cb5', closed: '#e0161b', text: '#1f2328', textMuted: '#4f5660', halo: '#ffffff',
     peak: '#3b3129', hut: '#b03a2e', camp: '#2f7a3b', lookout: '#7a4fa0',
   },
 };
@@ -35,7 +35,7 @@ const TERRARIUM = 'https://s3.amazonaws.com/elevation-tiles-prod/terrarium/{z}/{
 const w = (...stops) => ['interpolate', ['exponential', 1.5], ['zoom'], ...stops];
 const cls = (...values) => ['match', ['get', 'class'], values, true, false];
 
-function buildStyle(themeName, demSource, visible) {
+function buildStyle(themeName, demSource, visible, closures) {
   const t = THEMES[themeName];
   const vis = (group) => (visible[group] === false ? 'none' : 'visible');
   const L = (group, layer) => ({ ...layer, metadata: { group }, layout: { ...(layer.layout || {}), visibility: vis(group) } });
@@ -74,6 +74,8 @@ function buildStyle(themeName, demSource, visible) {
         })],
       },
       places: { type: 'geojson', data: 'data/places.geojson' },
+      closures: { type: 'geojson', data: closures,
+                  attribution: 'Closures: <a href="https://discover.data.vic.gov.au/">© State of Victoria (DEECA), CC BY 4.0</a>' },
     },
     layers: [
       { id: 'background', type: 'background', paint: { 'background-color': t.bg } },
@@ -149,6 +151,13 @@ function buildStyle(themeName, demSource, visible) {
       roadLine('road-primary', cls('primary'), t.primary, w(6, 1, 16, 13)),
       roadLine('road-motorway', cls('motorway', 'trunk'), t.motorway, w(5, 1.2, 16, 14)),
 
+      // Live road & track closures (Vicmap). The hit layer is a wide invisible line for easier tapping.
+      L('closures', { id: 'closure-casing', type: 'line', source: 'closures', layout: { 'line-cap': 'round', 'line-join': 'round' },
+        paint: { 'line-color': t.halo, 'line-width': w(8, 3, 16, 10), 'line-opacity': 0.9 } }),
+      L('closures', { id: 'closure-line', type: 'line', source: 'closures', layout: { 'line-join': 'round' },
+        paint: { 'line-color': t.closed, 'line-width': w(8, 1.6, 16, 5), 'line-dasharray': [1.2, 0.8] } }),
+      L('closures', { id: 'closure-hit', type: 'line', source: 'closures', paint: { 'line-color': '#000', 'line-width': 16, 'line-opacity': 0 } }),
+
       { id: 'building', type: 'fill', source: 'omt', 'source-layer': 'building', minzoom: 14,
         paint: { 'fill-color': t.urban, 'fill-outline-color': t.casing } },
 
@@ -174,6 +183,11 @@ function buildStyle(themeName, demSource, visible) {
         layout: { 'symbol-placement': 'line', 'text-field': ['get', 'ref'], 'text-font': FONT.bold, 'text-size': 10,
                   'text-rotation-alignment': 'viewport', 'symbol-spacing': 500 },
         paint: { 'text-color': '#ffffff', 'text-halo-color': t.motorway, 'text-halo-width': 3 } },
+
+      L('closures', { id: 'closure-label', type: 'symbol', source: 'closures', minzoom: 12,
+        layout: { 'symbol-placement': 'line', 'text-field': 'CLOSED', 'text-font': FONT.bold, 'text-size': 10,
+                  'text-letter-spacing': 0.1, 'symbol-spacing': 250 },
+        paint: { 'text-color': t.closed, 'text-halo-color': t.halo, 'text-halo-width': 2 } }),
 
       // Outdoor points from our own OSM extract (data/places.geojson)
       L('outdoor', { id: 'poi-outdoor', type: 'symbol', source: 'places', minzoom: 10,

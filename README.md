@@ -1,6 +1,6 @@
 # High Country Atlas
 
-A detailed, searchable topographic map of Victoria's High Country — peaks, huts, campsites, lookouts, 4WD tracks, walking tracks, rivers and parks — with relief shading, contour lines and optional 3D terrain.
+A detailed, searchable topographic map of Victoria's High Country — peaks, huts, campsites, lookouts, 4WD tracks, walking tracks, rivers and parks — with relief shading, contour lines, optional 3D terrain and **live road & track closures**.
 
 It's a static site (no build step): plain HTML/CSS/JS served as-is.
 
@@ -32,6 +32,7 @@ Edit `BBOX` in that script to change the area covered.
 ## Data & credits
 
 - Map data © [OpenStreetMap](https://www.openstreetmap.org/copyright) contributors, vector tiles by [OpenFreeMap](https://openfreemap.org) / [OpenMapTiles](https://openmaptiles.org)
+- Road & track closures: live from the [Vicmap / DataVic open data service](https://discover.data.vic.gov.au/) (layer `paim_vm_tr_road_closures`), © State of Victoria (DEECA), [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). Fetched in the browser on each visit; always confirm with Parks Victoria / DEECA before travelling.
 - Terrain: [Mapzen / AWS Terrain Tiles](https://registry.opendata.aws/terrain-tiles/)
 - Rendering: [MapLibre GL JS](https://maplibre.org), contours by [maplibre-contour](https://github.com/onthegomap/maplibre-contour)
 
