@@ -32,6 +32,9 @@ const ICONS = {
     ctx.beginPath(); ctx.moveTo(s / 2, s * 0.5); ctx.lineTo(s * 0.62, s * 0.85); ctx.lineTo(s * 0.38, s * 0.85); ctx.closePath(); ctx.fillStyle = '#fff'; ctx.fill(); },
   lookout(ctx, s, c) { star(ctx, s / 2, s / 2, s * 0.44, s * 0.2); fill(ctx, c.lookout); },
   cave(ctx, s, c) { ctx.beginPath(); ctx.arc(s / 2, s * 0.62, s * 0.34, Math.PI, 0); ctx.lineTo(s * 0.84, s * 0.8); ctx.lineTo(s * 0.16, s * 0.8); ctx.closePath(); fill(ctx, c.textMuted); },
+  picnic(ctx, s, c) { ctx.beginPath(); ctx.roundRect(s * 0.1, s * 0.1, s * 0.8, s * 0.8, s * 0.16); fill(ctx, c.picnic);
+    ctx.fillStyle = '#fff'; ctx.fillRect(s * 0.24, s * 0.34, s * 0.52, s * 0.1); ctx.fillRect(s * 0.3, s * 0.44, s * 0.08, s * 0.28);
+    ctx.fillRect(s * 0.62, s * 0.44, s * 0.08, s * 0.28); ctx.fillRect(s * 0.2, s * 0.54, s * 0.6, s * 0.07); },
   attraction(ctx, s, c) { ctx.beginPath(); ctx.arc(s / 2, s / 2, s * 0.26, 0, 2 * Math.PI); fill(ctx, c.textMuted); },
 };
 function fill(ctx, color) { ctx.fillStyle = color; ctx.strokeStyle = '#fff'; ctx.lineWidth = 3; ctx.lineJoin = 'round'; ctx.stroke(); ctx.fill(); }
@@ -96,6 +99,8 @@ const KIND_LABEL = {
   city: 'City', town: 'Town', village: 'Village', locality: 'Locality', peak: 'Peak', saddle: 'Saddle / gap',
   hut: 'Hut', campsite: 'Campsite', lookout: 'Lookout', cave: 'Cave', park: 'Park / reserve', lake: 'Lake',
   river: 'River', resort: 'Alpine resort', attraction: 'Point of interest',
+  pvcamp: 'Campground', pvpicnic: 'Picnic area', pvsite: 'Recreation site',
+  walk: 'Walk', drive: 'Drive / 4WD tour', ride: 'Ride',
 };
 const popup = new maplibregl.Popup({ closeButton: false, offset: 12, maxWidth: '260px' });
 function showPopup(lngLat, props) {
@@ -107,6 +112,49 @@ function showPopup(lngLat, props) {
 }
 for (const id of ['peak-major', 'peak-mid', 'peak-all', 'poi-outdoor', 'saddle']) {
   map.on('click', id, (e) => showPopup(e.features[0].geometry.coordinates, e.features[0].properties));
+  map.on('mouseenter', id, () => { map.getCanvas().style.cursor = 'pointer'; });
+  map.on('mouseleave', id, () => { map.getCanvas().style.cursor = ''; });
+}
+
+// ---------- Parks Victoria sites & routes (data/pv_*.geojson, built by scripts/build_parks.py) ----------
+// MapLibre hands nested arrays/objects back from rendered features as JSON strings.
+const parsed = (v) => (typeof v === 'string' && /^[[{]/.test(v) ? JSON.parse(v) : v);
+const todayISO = () => new Date().toLocaleDateString('en-CA', { timeZone: 'Australia/Melbourne' });
+
+function showPvPopup(lngLat, props) {
+  const p = Object.fromEntries(Object.entries(props).map(([k, v]) => [k, parsed(v)]));
+  const el = document.createElement('div');
+  el.className = 'pop-pv';
+  const add = (cls, text, parent = el) => { const d = parent.appendChild(document.createElement('div')); d.className = cls; d.textContent = text; return d; };
+  add('pop-name', p.n);
+  add('pop-meta', `${KIND_LABEL[p.k] || ''} · Parks Victoria`);
+  const cl = p.cl, today = todayISO();
+  if (cl && cl.s <= today && (!cl.o || cl.o >= today)) {
+    add('pop-closed', `Closed${cl.r ? ` · ${cl.r}` : ''}${cl.o ? ` · reopens ${fmtDate(cl.o)}` : ''}`);
+    if (cl.d) add('pop-note', cl.d);
+  }
+  (p.g || []).forEach((line) => add('pop-grade', line));
+  if (p.f?.length) {
+    const chips = add('pop-chips', '');
+    p.f.forEach((f) => add('chip', f, chips));
+  }
+  if (p.x || p.t) add('pop-meta', [p.x, p.t].filter(Boolean).join(' · '));
+  if (p.d) add('pop-note', p.d);
+  if (p.a) {
+    const details = el.appendChild(document.createElement('details'));
+    details.appendChild(document.createElement('summary')).textContent = 'Getting there';
+    add('pop-note', p.a, details);
+  }
+  pvPopup.setLngLat(lngLat).setDOMContent(el).addTo(map);
+}
+const pvPopup = new maplibregl.Popup({ closeButton: true, offset: 12, maxWidth: '300px', className: 'pv' });
+map.on('click', 'pv-site', (e) => showPvPopup(e.features[0].geometry.coordinates, e.features[0].properties));
+map.on('click', 'pv-route-hit', (e) => {
+  // A site icon sitting on a route takes precedence over the route itself.
+  if (map.queryRenderedFeatures(e.point, { layers: ['pv-site'] }).length) return;
+  showPvPopup(e.lngLat, e.features[0].properties);
+});
+for (const id of ['pv-site', 'pv-route-hit']) {
   map.on('mouseenter', id, () => { map.getCanvas().style.cursor = 'pointer'; });
   map.on('mouseleave', id, () => { map.getCanvas().style.cursor = ''; });
 }
@@ -161,16 +209,23 @@ map.on('mouseleave', 'closure-hit', () => { map.getCanvas().style.cursor = ''; }
 
 // ---------- Search ----------
 const WEIGHT = { city: 10, town: 10, resort: 9, village: 8, peak: 7, hut: 6, park: 5, lake: 5, river: 5,
-                 campsite: 4, lookout: 4, locality: 3, saddle: 3, cave: 3, attraction: 3 };
+                 campsite: 4, lookout: 4, locality: 3, saddle: 3, cave: 3, attraction: 3,
+                 pvcamp: 5, walk: 5, drive: 5, pvpicnic: 4, ride: 4, pvsite: 3 };
 const ZOOM_FOR = { city: 11, town: 12, village: 13, resort: 13, park: 11, river: 12, lake: 13 };
 // "Mt Bogong" should find "Mount Bogong" and vice versa.
 const norm = (s) => s.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '')
   .replace(/\bmount\b/g, 'mt').replace(/\bsaint\b/g, 'st').replace(/[^a-z0-9 ]/g, ' ').replace(/\s+/g, ' ').trim();
 
 let places = [];
-fetch('data/places.geojson').then((r) => r.json()).then((fc) => {
-  places = fc.features.map((f) => ({ ...f.properties, c: f.geometry.coordinates, key: norm(f.properties.n) }));
-  document.getElementById('q').placeholder = `Search ${places.length.toLocaleString()} peaks, huts, towns…`;
+const loadJSON = (url) => fetch(url).then((r) => r.json());
+Promise.all(['data/places.geojson', 'data/pv_sites.geojson', 'data/pv_routes.geojson'].map(loadJSON)).then(([osm, sites, routes]) => {
+  places = [
+    ...osm.features.map((f) => ({ ...f.properties, c: f.geometry.coordinates })),
+    ...sites.features.map((f) => ({ ...f.properties, c: f.geometry.coordinates, pv: true })),
+    // Routes open at their first point (usually the trailhead) and zoom to fit the whole route.
+    ...routes.features.map((f) => ({ ...f.properties, c: f.geometry.coordinates[0][0], pv: true })),
+  ].map((p) => ({ ...p, key: norm(p.n) }));
+  document.getElementById('q').placeholder = `Search ${places.length.toLocaleString()} peaks, huts, walks…`;
 });
 
 function search(query) {
@@ -213,8 +268,9 @@ function choose(p) {
   input.value = p.n;
   list.hidden = true;
   input.blur();
-  map.flyTo({ center: p.c, zoom: Math.max(map.getZoom(), ZOOM_FOR[p.k] || 14), speed: 1.4 });
-  map.once('moveend', () => showPopup(p.c, p));
+  if (p.b) map.fitBounds([[p.b[0], p.b[1]], [p.b[2], p.b[3]]], { padding: 80, maxZoom: 14, speed: 1.4 });
+  else map.flyTo({ center: p.c, zoom: Math.max(map.getZoom(), ZOOM_FOR[p.k] || 14), speed: 1.4 });
+  map.once('moveend', () => (p.pv ? showPvPopup : showPopup)(p.c, p));
 }
 input.addEventListener('input', () => { current = search(input.value); active = current.length ? 0 : -1; render(); });
 input.addEventListener('focus', () => { if (input.value) render(); });

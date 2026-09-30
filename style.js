@@ -12,7 +12,8 @@ const THEMES = {
     casing: '#a79b87', motorway: '#c23b2f', primary: '#d2553f', secondary: '#e38b4e',
     tertiary: '#fff7e6', minor: '#ffffff', track: '#7a4a24', path: '#b3322a',
     boundary: '#9b7fa6', closed: '#d11f1f', text: '#2b2620', textMuted: '#5a5144', halo: '#f7f4ec',
-    peak: '#5a3d24', hut: '#8c2f22', camp: '#2f6b3b', lookout: '#6a4a8a',
+    peak: '#5a3d24', hut: '#8c2f22', camp: '#2f6b3b', lookout: '#6a4a8a', picnic: '#3a6f86',
+    walk: '#8e3aa8', drive: '#d9720b', ride: '#0e8a8a',
   },
   topo: {
     bg: '#fbfbf8', wood: '#d6e8c9', scrub: '#e2ecd4', grass: '#f0f3e4', farm: '#f7f7ef',
@@ -24,11 +25,14 @@ const THEMES = {
     casing: '#8e8e8e', motorway: '#f0b43c', primary: '#f6cf62', secondary: '#fbe39a',
     tertiary: '#ffffff', minor: '#ffffff', track: '#6b5b4b', path: '#b0413e',
     boundary: '#a37cb5', closed: '#e0161b', text: '#1f2328', textMuted: '#4f5660', halo: '#ffffff',
-    peak: '#3b3129', hut: '#b03a2e', camp: '#2f7a3b', lookout: '#7a4fa0',
+    peak: '#3b3129', hut: '#b03a2e', camp: '#2f7a3b', lookout: '#7a4fa0', picnic: '#2f7394',
+    walk: '#9b2fb5', drive: '#e27a00', ride: '#0f9494',
   },
 };
 
 const FONT = { regular: ['Noto Sans Regular'], bold: ['Noto Sans Bold'], italic: ['Noto Sans Italic'] };
+// One shared credit for all Vicmap / Parks Victoria data; MapLibre shows identical credits once.
+const VICMAP_CREDIT = 'Vicmap &amp; Parks Victoria data <a href="https://discover.data.vic.gov.au/">© State of Victoria (DEECA), CC BY 4.0</a>';
 const TERRARIUM = 'https://s3.amazonaws.com/elevation-tiles-prod/terrarium/{z}/{x}/{y}.png';
 
 // Zoom-interpolated line width helper.
@@ -74,8 +78,10 @@ function buildStyle(themeName, demSource, visible, closures) {
         })],
       },
       places: { type: 'geojson', data: 'data/places.geojson' },
+      pv_sites: { type: 'geojson', data: 'data/pv_sites.geojson', attribution: VICMAP_CREDIT },
+      pv_routes: { type: 'geojson', data: 'data/pv_routes.geojson' },
       closures: { type: 'geojson', data: closures,
-                  attribution: 'Closures: <a href="https://discover.data.vic.gov.au/">© State of Victoria (DEECA), CC BY 4.0</a>' },
+                  attribution: VICMAP_CREDIT },
     },
     layers: [
       { id: 'background', type: 'background', paint: { 'background-color': t.bg } },
@@ -138,6 +144,12 @@ function buildStyle(themeName, demSource, visible, closures) {
         paint: { 'line-color': t.boundary, 'line-width': w(5, 1, 12, 3), 'line-dasharray': [4, 2, 1, 2], 'line-opacity': 0.7 } },
 
       // Tracks & paths (important in the High Country)
+      // Official Parks Victoria walks, drives and rides: a soft coloured band under the track itself.
+      L('pv', { id: 'pv-route', type: 'line', source: 'pv_routes', minzoom: 9,
+        layout: { 'line-cap': 'round', 'line-join': 'round' },
+        paint: { 'line-color': ['match', ['get', 'k'], 'drive', t.drive, 'ride', t.ride, t.walk],
+                 'line-width': w(9, 2.5, 16, 12), 'line-opacity': ['interpolate', ['linear'], ['zoom'], 9, 0.55, 14, 0.35] } }),
+      L('pv', { id: 'pv-route-hit', type: 'line', source: 'pv_routes', minzoom: 9, paint: { 'line-color': '#000', 'line-width': 14, 'line-opacity': 0 } }),
       { ...roadLine('path', cls('path'), t.path, w(11, 0.9, 16, 2.4), { 'line-dasharray': [2, 1.4] }), minzoom: 11 },
       { ...roadLine('track-casing', cls('track'), t.halo, w(10, 1.6, 16, 5)), minzoom: 10 },
       { ...roadLine('track', cls('track'), t.track, w(10, 0.9, 16, 2.6), { 'line-dasharray': [3, 1.2] }), minzoom: 10 },
@@ -200,6 +212,17 @@ function buildStyle(themeName, demSource, visible, closures) {
         },
         paint: { 'text-color': ['match', ['get', 'k'], 'hut', t.hut, 'campsite', t.camp, 'lookout', t.lookout, t.textMuted],
                  'text-halo-color': t.halo, 'text-halo-width': 1.4 } }),
+      L('pv', { id: 'pv-route-label', type: 'symbol', source: 'pv_routes', minzoom: 12,
+        layout: { 'symbol-placement': 'line', 'text-field': ['get', 'n'], 'text-font': FONT.bold, 'text-size': 10.5, 'symbol-spacing': 400 },
+        paint: { 'text-color': ['match', ['get', 'k'], 'drive', t.drive, 'ride', t.ride, t.walk], 'text-halo-color': t.halo, 'text-halo-width': 1.6 } }),
+      L('pv', { id: 'pv-site', type: 'symbol', source: 'pv_sites', minzoom: 9.5,
+        layout: {
+          'icon-image': ['match', ['get', 'k'], 'pvcamp', 'campsite', 'pvpicnic', 'picnic', 'attraction'],
+          'text-field': ['step', ['zoom'], '', 11.5, ['get', 'n']], 'text-font': FONT.regular, 'text-size': 11,
+          'text-anchor': 'top', 'text-offset': [0, 0.8], 'text-max-width': 8, 'text-optional': true,
+          'symbol-sort-key': ['match', ['get', 'k'], 'pvcamp', 0, 1],
+        },
+        paint: { 'text-color': ['match', ['get', 'k'], 'pvcamp', t.camp, t.picnic], 'text-halo-color': t.halo, 'text-halo-width': 1.4 } }),
       { id: 'saddle', type: 'symbol', source: 'places', minzoom: 12, filter: ['==', ['get', 'k'], 'saddle'],
         layout: { 'text-field': ['get', 'n'], 'text-font': FONT.italic, 'text-size': 10.5, 'text-max-width': 7 },
         paint: { 'text-color': t.peak, 'text-halo-color': t.halo, 'text-halo-width': 1.4 } },
