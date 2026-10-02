@@ -6,8 +6,13 @@ import path from 'node:path';
 // Builds run from the project root (locally and on Vercel), so resolve data from there, not from the bundled file.
 const read = (file) => JSON.parse(fs.readFileSync(path.join(process.cwd(), 'public/data', file), 'utf8')).features;
 
+// Hand-picked favourites live in src/data/favourites.json; drafts stay hidden.
+export const FAVOURITES = JSON.parse(fs.readFileSync(path.join(process.cwd(), 'src/data/favourites.json'), 'utf8'));
+export const getFavourites = () => FAVOURITES.items.filter((f) => !f.draft);
+
 // URL segment → labels, and which source kinds belong to it. Order = order shown on the homepage.
 export const CATEGORIES = [
+  { id: 'favourites', one: 'Local favourite', many: 'Local favourites', blurb: 'Hand-picked swims, rides, pubs and stories worth the detour.', curated: true },
   { id: 'huts', one: 'Hut', many: 'Huts', blurb: 'Cattlemen’s, forestry and club huts scattered across the high plains.', osm: ['hut'] },
   { id: 'campgrounds', one: 'Campground', many: 'Campgrounds', blurb: 'From riverside flats to remote bush camps.', osm: ['campsite'], pv: ['pvcamp'] },
   { id: 'walks', one: 'Walk', many: 'Walks', blurb: 'Official Parks Victoria walks, from short strolls to multi-day treks.', routes: ['walk'] },
@@ -56,6 +61,11 @@ function load() {
       grades: p.g || [], experience: p.x, track: p.t, description: p.d, access: p.a, closure: p.cl });
   }
 
+  for (const f of getFavourites()) {
+    places.push({ name: f.name, kind: 'favourite', category: 'favourites', coords: f.coords, source: 'curated', fixedSlug: f.slug,
+      town: f.town, tags: f.tags, blurb: f.blurb, body: f.body, tip: f.tip, website: f.website, approx: !!f.approx });
+  }
+
   // Towns (not localities) anchor the "12 km SE of Bright" descriptions.
   const towns = places.filter((p) => ['city', 'town', 'village'].includes(p.kind));
   for (const p of places) {
@@ -71,7 +81,7 @@ function load() {
   // Unique slugs within each category: name, then name + nearest town, then a number.
   const used = new Set();
   for (const p of places.sort((a, b) => a.name.localeCompare(b.name))) {
-    let slug = slugify(p.name);
+    let slug = p.fixedSlug || slugify(p.name);
     if (used.has(`${p.category}/${slug}`) && p.nearestTown) slug = `${slug}-${slugify(p.nearestTown.name)}`;
     for (let i = 2; used.has(`${p.category}/${slug}`); i++) slug = `${slugify(p.name)}-${i}`;
     used.add(`${p.category}/${slug}`);

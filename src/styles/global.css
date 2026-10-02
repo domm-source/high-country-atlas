@@ -35,6 +35,7 @@
 }
 
 /* One colour per category, used by cards, tags and listing headers. */
+[data-cat='favourites'] { --cat: #ff7ab6; }
 [data-cat='huts'] { --cat: var(--orange); }
 [data-cat='campgrounds'] { --cat: var(--green); }
 [data-cat='walks'] { --cat: var(--blue); --cat-ink: #fff; }

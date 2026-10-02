@@ -13,7 +13,7 @@ const THEMES = {
     tertiary: '#fff7e6', minor: '#ffffff', track: '#7a4a24', path: '#b3322a',
     boundary: '#9b7fa6', closed: '#d11f1f', text: '#2b2620', textMuted: '#5a5144', halo: '#f7f4ec',
     peak: '#5a3d24', hut: '#8c2f22', camp: '#2f6b3b', lookout: '#6a4a8a', picnic: '#3a6f86',
-    walk: '#8e3aa8', drive: '#d9720b', ride: '#0e8a8a',
+    walk: '#8e3aa8', drive: '#d9720b', ride: '#0e8a8a', fav: '#ff7ab6',
   },
   topo: {
     bg: '#fbfbf8', wood: '#d6e8c9', scrub: '#e2ecd4', grass: '#f0f3e4', farm: '#f7f7ef',
@@ -26,25 +26,15 @@ const THEMES = {
     tertiary: '#ffffff', minor: '#ffffff', track: '#6b5b4b', path: '#b0413e',
     boundary: '#a37cb5', closed: '#e0161b', text: '#1f2328', textMuted: '#4f5660', halo: '#ffffff',
     peak: '#3b3129', hut: '#b03a2e', camp: '#2f7a3b', lookout: '#7a4fa0', picnic: '#2f7394',
-    walk: '#9b2fb5', drive: '#e27a00', ride: '#0f9494',
-  },
-  // Aged survey-map look: sepia paper, iron-oxide roads, faded ink.
-  goldfields: {
-    bg: '#efe2c4', wood: '#dcd3a6', scrub: '#e4dab4', grass: '#ebdfbf', farm: '#efe3c6',
-    rock: '#e2d3b4', ice: '#f6efdf', wetland: '#dad5b3', urban: '#e3cfab',
-    water: '#b4c4bb', waterLine: '#6a8c94', waterLabel: '#43616b',
-    park: '#cbbf8b', parkLine: '#7d6b3a', parkLabel: '#5d4a25',
-    shadow: '#5a3b1e', highlight: '#fff3d6', accentShade: '#7a5a32', reliefOpacity: 0.6,
-    contour: '#a0703f', contourIndex: '#7f5225', contourLabel: '#7a4e24',
-    casing: '#7a5a3a', motorway: '#8f2f17', primary: '#9c3d1b', secondary: '#b0592b',
-    tertiary: '#f3e6c8', minor: '#f6ecd6', track: '#5c3a1c', path: '#9c3d1b',
-    boundary: '#7b5a7e', closed: '#c21d12', text: '#2a1f16', textMuted: '#5a4632', halo: '#efe2c4',
-    peak: '#3d2814', hut: '#8a2c14', camp: '#4f5d2f', lookout: '#6b4a74', picnic: '#4a6470',
-    walk: '#7a2e5c', drive: '#b5651d', ride: '#2f6e6a',
+    walk: '#9b2fb5', drive: '#e27a00', ride: '#0f9494', fav: '#ff7ab6',
   },
 };
 
-const FONT = { regular: ['Noto Sans Regular'], bold: ['Noto Sans Bold'], italic: ['Noto Sans Italic'] };
+// Map label fonts match the website: glyphs generated from Archivo and Bricolage Grotesque (OFL), served from /map/fonts.
+const FONT = {
+  regular: ['Archivo Regular'], bold: ['Archivo SemiBold'], italic: ['Archivo Italic'],
+  condensed: ['Archivo Condensed Bold'], display: ['Bricolage Grotesque ExtraBold'],
+};
 // One shared credit for all Vicmap / Parks Victoria data; MapLibre shows identical credits once.
 const VICMAP_CREDIT = 'Vicmap &amp; Parks Victoria data <a href="https://discover.data.vic.gov.au/">© State of Victoria (DEECA), CC BY 4.0</a>';
 const TERRARIUM = 'https://s3.amazonaws.com/elevation-tiles-prod/terrarium/{z}/{x}/{y}.png';
@@ -70,7 +60,7 @@ function buildStyle(themeName, demSource, visible, closures) {
     layout: {
       'icon-image': 'peak', 'symbol-sort-key': ['-', 0, ['coalesce', ['get', 'e'], 0]],
       'text-field': ['format', ['get', 'n'], {}, ['case', ['has', 'e'], ['concat', '\n', ['to-string', ['get', 'e']], ' m'], ''], { 'font-scale': 0.85 }],
-      'text-font': FONT.bold, 'text-size': ['interpolate', ['linear'], ['coalesce', ['get', 'e'], 800], 800, 10.5, 1900, 12.5],
+      'text-font': FONT.condensed, 'text-size': ['interpolate', ['linear'], ['coalesce', ['get', 'e'], 800], 800, 11, 1900, 12.5],
       'text-anchor': 'top', 'text-offset': [0, 0.7], 'text-max-width': 8, 'text-optional': true,
     },
     paint: { 'text-color': t.peak, 'text-halo-color': t.halo, 'text-halo-width': 1.5 },
@@ -78,7 +68,7 @@ function buildStyle(themeName, demSource, visible, closures) {
 
   return {
     version: 8,
-    glyphs: 'https://tiles.openfreemap.org/fonts/{fontstack}/{range}.pbf',
+    glyphs: '/map/fonts/{fontstack}/{range}.pbf',
     sources: {
       omt: { type: 'vector', url: 'https://tiles.openfreemap.org/planet' },
       dem: { type: 'raster-dem', tiles: [demSource.sharedDemProtocolUrl], encoding: 'terrarium', tileSize: 256, maxzoom: 13,
@@ -94,6 +84,7 @@ function buildStyle(themeName, demSource, visible, closures) {
       places: { type: 'geojson', data: '/data/places.geojson' },
       pv_sites: { type: 'geojson', data: '/data/pv_sites.geojson', attribution: VICMAP_CREDIT },
       pv_routes: { type: 'geojson', data: '/data/pv_routes.geojson' },
+      favourites: { type: 'geojson', data: '/data/favourites.geojson' },
       closures: { type: 'geojson', data: closures,
                   attribution: VICMAP_CREDIT },
     },
@@ -249,14 +240,22 @@ function buildStyle(themeName, demSource, visible, closures) {
         layout: { 'text-field': ['get', 'name'], 'text-font': FONT.regular, 'text-size': 11, 'text-max-width': 8 },
         paint: { 'text-color': t.textMuted, 'text-halo-color': t.halo, 'text-halo-width': 1.5 } },
       { id: 'place-village', type: 'symbol', source: 'omt', 'source-layer': 'place', minzoom: 8, filter: cls('village'),
-        layout: { 'text-field': ['get', 'name'], 'text-font': FONT.bold, 'text-size': w(8, 11, 13, 14), 'text-max-width': 8 },
+        layout: { 'text-field': ['get', 'name'], 'text-font': FONT.display, 'text-size': w(8, 11.5, 13, 15), 'text-max-width': 8 },
         paint: { 'text-color': t.text, 'text-halo-color': t.halo, 'text-halo-width': 1.6 } },
       { id: 'place-town', type: 'symbol', source: 'omt', 'source-layer': 'place', filter: cls('town', 'city'),
-        layout: { 'text-field': ['get', 'name'], 'text-font': FONT.bold, 'text-size': w(6, 12, 13, 18),
-                  'text-transform': ['step', ['zoom'], 'none', 11, 'uppercase'], 'text-letter-spacing': 0.03, 'text-max-width': 8 },
+        layout: { 'text-field': ['get', 'name'], 'text-font': FONT.display, 'text-size': w(6, 13, 13, 20),
+                  'text-letter-spacing': -0.01, 'text-max-width': 8 },
         paint: { 'text-color': t.text, 'text-halo-color': t.halo, 'text-halo-width': 2 } },
       // Major peaks last so they win label collisions, even against towns.
       peakLayer('peak-major', 7.5, 1600),
+      // Hand-picked local favourites: always on top, from regional zoom down.
+      L('favourites', { id: 'favourite', type: 'symbol', source: 'favourites', minzoom: 7.5,
+        layout: {
+          'icon-image': 'favourite', 'icon-allow-overlap': true, 'icon-size': ['interpolate', ['linear'], ['zoom'], 8, 0.8, 13, 1.1],
+          'text-field': ['step', ['zoom'], '', 9.5, ['get', 'n']], 'text-font': FONT.display, 'text-size': 13,
+          'text-anchor': 'top', 'text-offset': [0, 1.1], 'text-max-width': 9, 'text-optional': true,
+        },
+        paint: { 'text-color': '#141210', 'text-halo-color': t.fav, 'text-halo-width': 2.5 } }),
     ],
   };
 }

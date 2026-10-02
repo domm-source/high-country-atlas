@@ -8,7 +8,7 @@ demSource.setupMaplibre(maplibregl);
 const EMPTY = { type: 'FeatureCollection', features: [] };
 // URL options used when the atlas is embedded in the website:
 //   ?embed      hide search + options panel     ?marker   pin the starting point
-//   ?fly        slow, non-interactive 3D drift  ?theme=   atlas | topo | goldfields
+//   ?fly        slow, non-interactive 3D drift  ?theme=   atlas | topo
 const params = new URLSearchParams(location.search);
 const EMBED = params.has('embed'), FLY = params.has('fly'), MARKER = params.has('marker');
 if (EMBED) document.documentElement.classList.add('embed');
@@ -50,6 +50,15 @@ if (FLY && !matchMedia('(prefers-reduced-motion: reduce)').matches) {
 
 // ---------- Icons (drawn on canvas, added on demand) ----------
 const ICONS = {
+  // Local favourites: a bigger pink badge with an ink heart, so they stand out from everything else.
+  favourite(ctx, s, c) {
+    ctx.beginPath(); ctx.arc(s / 2, s / 2, s * 0.44, 0, 2 * Math.PI);
+    ctx.fillStyle = c.fav; ctx.fill(); ctx.lineWidth = s * 0.07; ctx.strokeStyle = '#141210'; ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(s / 2, s * 0.72);
+    ctx.bezierCurveTo(s * 0.2, s * 0.52, s * 0.26, s * 0.27, s / 2, s * 0.38);
+    ctx.bezierCurveTo(s * 0.74, s * 0.27, s * 0.8, s * 0.52, s / 2, s * 0.72);
+    ctx.fillStyle = '#141210'; ctx.fill();
+  },
   peak(ctx, s, c) { ctx.beginPath(); ctx.moveTo(s / 2, s * 0.18); ctx.lineTo(s * 0.86, s * 0.8); ctx.lineTo(s * 0.14, s * 0.8); ctx.closePath(); fill(ctx, c.peak); },
   hut(ctx, s, c) { ctx.beginPath(); ctx.moveTo(s / 2, s * 0.12); ctx.lineTo(s * 0.9, s * 0.48); ctx.lineTo(s * 0.78, s * 0.48); ctx.lineTo(s * 0.78, s * 0.86);
     ctx.lineTo(s * 0.22, s * 0.86); ctx.lineTo(s * 0.22, s * 0.48); ctx.lineTo(s * 0.1, s * 0.48); ctx.closePath(); fill(ctx, c.hut); },
@@ -71,7 +80,7 @@ function star(ctx, cx, cy, R, r) {
 map.on('styleimagemissing', (e) => {
   const draw = ICONS[e.id];
   if (!draw || map.hasImage(e.id)) return;
-  const size = 32, canvas = document.createElement('canvas');
+  const size = e.id === 'favourite' ? 48 : 32, canvas = document.createElement('canvas');
   canvas.width = canvas.height = size;
   draw(canvas.getContext('2d'), size, THEMES[state.theme]);
   map.addImage(e.id, canvas.getContext('2d').getImageData(0, 0, size, size), { pixelRatio: 2 });
@@ -120,13 +129,32 @@ document.getElementById('panel-toggle').addEventListener('click', (e) => {
 });
 if (window.matchMedia('(max-width: 600px)').matches) panel.classList.add('collapsed');
 
+// ---------- Map tips: shown on a first visit, and any time from the "?" button ----------
+const tips = document.getElementById('tips');
+const tipsBtn = document.getElementById('tips-btn');
+if (/Mac|iPhone|iPad/.test(navigator.platform || navigator.userAgent)) {
+  document.querySelectorAll('.mod-ctrl').forEach((k) => { k.textContent = '⌃ control'; });
+}
+const remember = (key, value) => { try { localStorage.setItem(key, value); } catch { /* private mode etc. */ } };
+const recall = (key) => { try { return localStorage.getItem(key); } catch { return null; } };
+function setTips(open) {
+  tips.hidden = !open;
+  tipsBtn.setAttribute('aria-expanded', String(open));
+  if (open) tips.querySelector('.close').focus();
+  else remember('hc-tips-seen', '1');
+}
+tipsBtn.addEventListener('click', () => setTips(tips.hidden));
+tips.querySelectorAll('[data-close]').forEach((b) => b.addEventListener('click', () => { setTips(false); tipsBtn.focus(); }));
+document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && !tips.hidden) setTips(false); });
+if (!EMBED && !recall('hc-tips-seen')) setTips(true);
+
 // ---------- Popups ----------
 const KIND_LABEL = {
   city: 'City', town: 'Town', village: 'Village', locality: 'Locality', peak: 'Peak', saddle: 'Saddle / gap',
   hut: 'Hut', campsite: 'Campsite', lookout: 'Lookout', cave: 'Cave', park: 'Park / reserve', lake: 'Lake',
   river: 'River', resort: 'Alpine resort', attraction: 'Point of interest',
   pvcamp: 'Campground', pvpicnic: 'Picnic area', pvsite: 'Recreation site',
-  walk: 'Walk', drive: 'Drive / 4WD tour', ride: 'Ride',
+  walk: 'Walk', drive: 'Drive / 4WD tour', ride: 'Ride', favourite: 'Local favourite',
 };
 const popup = new maplibregl.Popup({ closeButton: false, offset: 12, maxWidth: '260px' });
 function showPopup(lngLat, props) {
@@ -136,6 +164,21 @@ function showPopup(lngLat, props) {
   meta.textContent = [KIND_LABEL[props.k] || '', props.e ? `${props.e.toLocaleString()} m` : ''].filter(Boolean).join(' · ');
   popup.setLngLat(lngLat).setDOMContent(el).addTo(map);
 }
+// Local favourites link through to their page on the website.
+function showFavPopup(lngLat, p) {
+  const el = document.createElement('div');
+  const add = (cls, text) => { const d = el.appendChild(document.createElement('div')); d.className = cls; d.textContent = text; return d; };
+  add('pop-name', p.n);
+  add('pop-meta', `Local favourite · ${p.town}`);
+  add('pop-note', p.blurb);
+  const a = el.appendChild(document.createElement('a'));
+  a.className = 'pop-link'; a.href = p.url; a.textContent = 'Read more →';
+  popup.setLngLat(lngLat).setDOMContent(el).addTo(map);
+}
+map.on('click', 'favourite', (e) => showFavPopup(e.features[0].geometry.coordinates, e.features[0].properties));
+map.on('mouseenter', 'favourite', () => { map.getCanvas().style.cursor = 'pointer'; });
+map.on('mouseleave', 'favourite', () => { map.getCanvas().style.cursor = ''; });
+
 for (const id of ['peak-major', 'peak-mid', 'peak-all', 'poi-outdoor', 'saddle']) {
   map.on('click', id, (e) => showPopup(e.features[0].geometry.coordinates, e.features[0].properties));
   map.on('mouseenter', id, () => { map.getCanvas().style.cursor = 'pointer'; });
@@ -236,7 +279,7 @@ map.on('mouseleave', 'closure-hit', () => { map.getCanvas().style.cursor = ''; }
 // ---------- Search ----------
 const WEIGHT = { city: 10, town: 10, resort: 9, village: 8, peak: 7, hut: 6, park: 5, lake: 5, river: 5,
                  campsite: 4, lookout: 4, locality: 3, saddle: 3, cave: 3, attraction: 3,
-                 pvcamp: 5, walk: 5, drive: 5, pvpicnic: 4, ride: 4, pvsite: 3 };
+                 pvcamp: 5, walk: 5, drive: 5, pvpicnic: 4, ride: 4, pvsite: 3, favourite: 11 };
 const ZOOM_FOR = { city: 11, town: 12, village: 13, resort: 13, park: 11, river: 12, lake: 13 };
 // "Mt Bogong" should find "Mount Bogong" and vice versa.
 const norm = (s) => s.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '')
@@ -244,8 +287,9 @@ const norm = (s) => s.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '')
 
 let places = [];
 const loadJSON = (url) => fetch(url).then((r) => r.json());
-Promise.all(['/data/places.geojson', '/data/pv_sites.geojson', '/data/pv_routes.geojson'].map(loadJSON)).then(([osm, sites, routes]) => {
+Promise.all(['/data/places.geojson', '/data/pv_sites.geojson', '/data/pv_routes.geojson', '/data/favourites.geojson'].map(loadJSON)).then(([osm, sites, routes, favs]) => {
   places = [
+    ...favs.features.map((f) => ({ ...f.properties, c: f.geometry.coordinates, fav: true })),
     ...osm.features.map((f) => ({ ...f.properties, c: f.geometry.coordinates })),
     ...sites.features.map((f) => ({ ...f.properties, c: f.geometry.coordinates, pv: true })),
     // Routes open at their first point (usually the trailhead) and zoom to fit the whole route.
@@ -296,7 +340,7 @@ function choose(p) {
   input.blur();
   if (p.b) map.fitBounds([[p.b[0], p.b[1]], [p.b[2], p.b[3]]], { padding: 80, maxZoom: 14, speed: 1.4 });
   else map.flyTo({ center: p.c, zoom: Math.max(map.getZoom(), ZOOM_FOR[p.k] || 14), speed: 1.4 });
-  map.once('moveend', () => (p.pv ? showPvPopup : showPopup)(p.c, p));
+  map.once('moveend', () => (p.fav ? showFavPopup : p.pv ? showPvPopup : showPopup)(p.c, p));
 }
 input.addEventListener('input', () => { current = search(input.value); active = current.length ? 0 : -1; render(); });
 input.addEventListener('focus', () => { if (input.value) render(); });

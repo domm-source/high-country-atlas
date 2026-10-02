@@ -1,14 +1,14 @@
 <!doctype html>
-<html lang="en">
+<html lang="en-AU">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <title>High Country Atlas</title>
-  <meta name="description" content="A detailed topographic atlas of Victoria's High Country — peaks, huts, tracks, rivers and parks.">
-  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Ccircle cx='8' cy='8' r='7' fill='%23cfe0d0'/%3E%3Cpath d='M2.5 12l3.5-6 2 3 2-4 3.5 7z' fill='%234a5a3a'/%3E%3Cpath d='M9 6.2l1-1.2 1 1.8z' fill='%23fff'/%3E%3C/svg%3E">
+  <title>Atlas · High Country</title>
+  <meta name="description" content="A detailed topographic atlas of Victoria's High Country — peaks, huts, tracks, rivers, parks and live track closures.">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Ccircle cx='8' cy='8' r='7.5' fill='%23ffcf3d' stroke='%23141210'/%3E%3Cpath d='M2.5 12l3.5-6 2 3 2-4 3.5 7z' fill='%23141210'/%3E%3C/svg%3E">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Fira+Sans+Condensed:ital,wght@0,400;0,500;0,600;1,400&family=PT+Serif:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Archivo:ital,wdth,wght@0,62..125,400..900;1,62..125,400..700&family=Bricolage+Grotesque:opsz,wght@12..96,600..800&display=swap" rel="stylesheet">
   <link href="https://unpkg.com/maplibre-gl@5.24.0/dist/maplibre-gl.css" rel="stylesheet">
   <link href="/map/app.css" rel="stylesheet">
 </head>
@@ -16,7 +16,7 @@
   <div id="map"></div>
 
   <div class="card search" role="search">
-    <div class="brand">High Country <em>Atlas</em></div>
+    <a class="brand" href="/" title="High Country home">High Country</a>
     <div class="search-box">
       <input id="q" type="search" placeholder="Search peaks, huts, towns, rivers…" autocomplete="off" spellcheck="false" aria-label="Search places">
       <ul id="results" role="listbox" hidden></ul>
@@ -30,11 +30,11 @@
       <div class="seg" id="theme">
         <button data-theme="atlas">Atlas</button>
         <button data-theme="topo">Topo</button>
-        <button data-theme="goldfields">Goldfields</button>
       </div>
       <div class="label">Layers</div>
       <label><input type="checkbox" data-group="closures" checked> Road &amp; track closures</label>
       <div class="status" id="closure-status">Loading closures…</div>
+      <label><input type="checkbox" data-group="favourites" checked> Local favourites</label>
       <label><input type="checkbox" data-group="relief" checked> Relief shading</label>
       <label><input type="checkbox" data-group="contours" checked> Contour lines</label>
       <label><input type="checkbox" data-group="landcover" checked> Land cover</label>
@@ -44,6 +44,50 @@
       <label><input type="checkbox" id="terrain3d"> 3D terrain</label>
     </div>
   </div>
+
+  <button class="tips-btn" id="tips-btn" aria-haspopup="dialog" aria-controls="tips" title="Map tips">?</button>
+  <section class="card tips" id="tips" role="dialog" aria-modal="false" aria-labelledby="tips-title" hidden>
+    <button class="x" data-close aria-label="Close tips">×</button>
+    <p class="label">Getting around</p>
+    <h2 id="tips-title">Map tips</h2>
+    <p class="intro">A few moves that aren’t obvious at first.</p>
+
+    <div class="mouse-only">
+      <dl>
+        <dt><kbd>Shift</kbd> + drag</dt><dd>Draw a box to zoom straight into it</dd>
+        <dt><kbd class="mod-ctrl">Ctrl</kbd> + drag</dt><dd>Rotate and tilt the map (or drag with the right mouse button)</dd>
+        <dt>Double-click</dt><dd>Zoom in — add <kbd>Shift</kbd> to zoom out</dd>
+        <dt>Scroll / pinch</dt><dd>Zoom in and out</dd>
+      </dl>
+      <div class="group">
+        <p class="label">Keyboard</p>
+        <dl>
+          <dt><kbd>←</kbd><kbd>↑</kbd><kbd>→</kbd><kbd>↓</kbd></dt><dd>Pan</dd>
+          <dt><kbd>Shift</kbd> + arrows</dt><dd>Rotate (← →) and tilt (↑ ↓)</dd>
+          <dt><kbd>+</kbd> <kbd>−</kbd></dt><dd>Zoom — hold <kbd>Shift</kbd> to jump further</dd>
+        </dl>
+      </div>
+    </div>
+    <div class="touch-only">
+      <dl>
+        <dt>Pinch</dt><dd>Zoom in and out</dd>
+        <dt>Two fingers, twist</dt><dd>Rotate the map</dd>
+        <dt>Two fingers, drag up/down</dt><dd>Tilt into 3D</dd>
+        <dt>Double-tap</dt><dd>Zoom in</dd>
+      </dl>
+    </div>
+
+    <div class="group">
+      <p class="label">Also try</p>
+      <dl>
+        <dt>Tap a symbol</dt><dd>Huts, campgrounds, walks and red closed tracks all have details</dd>
+        <dt>3D terrain</dt><dd>Switch it on in the options panel, then tilt</dd>
+        <dt>Search</dt><dd>“mt” finds “Mount” — try <em>mt feathertop</em></dd>
+        <dt>Compass</dt><dd>Click it to point north again</dd>
+      </dl>
+    </div>
+    <button class="close" data-close>Got it</button>
+  </section>
 
   <script src="https://unpkg.com/maplibre-gl@5.24.0/dist/maplibre-gl.js"></script>
   <script src="https://unpkg.com/maplibre-contour@0.1.1/dist/index.min.js"></script>

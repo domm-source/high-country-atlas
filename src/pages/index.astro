@@ -3,6 +3,7 @@ import Base from '../layouts/Base.astro';
 import { CATEGORIES, getPlaces, whereText } from '../lib/places.js';
 
 const places = getPlaces();
+const favourites = places.filter((p) => p.category === 'favourites');
 const count = (id) => places.filter((p) => p.category === id).length;
 const huts = places.filter((p) => p.category === 'huts').map((p) => ({ n: p.name, u: p.url, w: whereText(p), c: p.coords }));
 // Hut of the week: picked by ISO week so it changes every Monday (in the browser, too — see script below).
@@ -11,6 +12,7 @@ const hut = huts[week % huts.length];
 
 // Simple line icons for the category cards (24×24, stroke = currentColor).
 const ICONS = {
+  favourites: 'M12 20.5s-8-4.8-8-10.4A4.4 4.4 0 0112 7.6a4.4 4.4 0 018 2.5c0 5.6-8 10.4-8 10.4z',
   huts: 'M3 11l9-7 9 7M5 10v10h14V10M10 20v-6h4v6',
   campgrounds: 'M12 4L3 20h18L12 4zM12 12l-3 8M12 12l3 8',
   walks: 'M13 4a1.5 1.5 0 100 3 1.5 1.5 0 000-3zM10 21l2-6 3 3v3M12 15l1-5 3 3 3 1M13 10l-4 2-1 4',
@@ -68,6 +70,24 @@ const ICONS = {
         <ul id="closure-list"><li class="muted">Checking…</li></ul>
         <a class="more" href="/map/">See them on the atlas →</a>
       </article>
+    </section>
+
+    <section class="favs" data-cat="favourites">
+      <div class="favs-head">
+        <h2 class="section-title">Local favourites</h2>
+        <p>Hand-picked swims, rides, pubs and stories — the stuff that doesn’t show up on a topo map.</p>
+      </div>
+      <div class="fav-grid">
+        {favourites.map((f) => (
+          <a class="fav" href={f.url}>
+            <span class="fav-town">{f.town}</span>
+            <span class="fav-name">{f.name}</span>
+            <span class="fav-blurb">{f.blurb}</span>
+            <span class="fav-tags">{f.tags.map((t) => <span>{t}</span>)}</span>
+          </a>
+        ))}
+      </div>
+      <a class="btn fav-all" href="/favourites/">All local favourites →</a>
     </section>
 
     <section class="explore">
@@ -171,6 +191,26 @@ const ICONS = {
   #closure-list :global(small) { display: block; color: var(--ink-2); font-weight: 500; }
   .conditions .where { color: var(--ink-2); }
   .muted { color: var(--ink-2); }
+
+  /* ---------- Local favourites ---------- */
+  .favs { margin-top: 8px; }
+  .favs-head { display: flex; flex-wrap: wrap; align-items: end; gap: 0 28px; margin: 64px 0 24px; }
+  .favs-head .section-title { margin: 0; }
+  .favs-head p { max-width: 30em; margin: 0 0 8px; font-weight: 500; color: var(--ink-2); }
+  .fav-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 18px; }
+  .fav {
+    display: flex; flex-direction: column; gap: 6px; padding: 18px 18px 16px; text-decoration: none; color: var(--ink);
+    background: var(--snow); border: var(--line); border-radius: 18px; box-shadow: var(--pop); transition: transform .12s, box-shadow .12s;
+  }
+  .fav:hover { color: var(--ink); background: var(--cat); transform: translate(-2px, -2px); box-shadow: 7px 7px 0 var(--ink); }
+  .fav-town { align-self: flex-start; font: 800 .74rem var(--sans); font-stretch: 75%; font-variation-settings: 'wdth' 75; text-transform: uppercase; letter-spacing: .05em; background: var(--cat); border: var(--line); border-radius: 99px; padding: 2px 9px; }
+  .fav:hover .fav-town { background: var(--snow); }
+  .fav-name { font: 800 1.45rem/1.05 var(--display); letter-spacing: -.035em; margin-top: 4px; }
+  .fav-blurb { font-size: .93rem; font-weight: 500; line-height: 1.4; }
+  .fav-tags { margin-top: auto; padding-top: 8px; display: flex; flex-wrap: wrap; gap: 4px 10px; font: 700 .75rem var(--sans); color: var(--ink-2); }
+  .fav-tags span::before { content: '#'; color: var(--rust); }
+  .fav-all { margin-top: 26px; background: var(--cat); }
+  @media (prefers-reduced-motion: reduce) { .fav { transition: none; } }
 
   /* ---------- Category grid: colour blocks ---------- */
   .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 22px; }

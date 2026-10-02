@@ -21,7 +21,8 @@ const KIND_PHRASE = {
   pvcamp: 'a Parks Victoria campground', pvpicnic: 'a Parks Victoria picnic area', pvsite: 'a Parks Victoria recreation site',
   walk: 'a Parks Victoria walk', drive: 'a Parks Victoria touring route', ride: 'a Parks Victoria riding route',
 };
-const intro = p.kind === 'peak' && p.ele
+const curated = p.source === 'curated';
+const intro = curated ? p.blurb : p.kind === 'peak' && p.ele
   ? `${p.name} rises to ${p.ele.toLocaleString()} m, ${where}.`
   : ['city', 'town', 'village', 'resort'].includes(p.kind)
     ? `${p.name} is ${KIND_PHRASE[p.kind]} in Victoria’s High Country${p.nearestTown ? `, ${fmtKm(p.nearestTown.km)} ${p.nearestTown.dir} of ${p.nearestTown.name}` : ''}.`
@@ -49,6 +50,9 @@ const coordText = `${Math.abs(lat).toFixed(5)}° S, ${lng.toFixed(5)}° E`;
       )}
 
       <p class="lead">{intro}</p>
+      {curated && p.body.map((para) => <p>{para}</p>)}
+      {curated && p.tip && <p class="tip"><b>Good to know</b> {p.tip}</p>}
+      {curated && p.tags?.length > 0 && <ul class="chips">{p.tags.map((t) => <li class="chip">{t}</li>)}</ul>}
       {p.grades?.length > 0 && <ul class="grades">{p.grades.map((g) => <li>{g}</li>)}</ul>}
       {p.description && <p>{p.description}</p>}
       {(p.experience || p.track) && <p class="note">{[p.experience, p.track].filter(Boolean).join(' · ')}</p>}
@@ -78,8 +82,9 @@ const coordText = `${Math.abs(lat).toFixed(5)}° S, ${lng.toFixed(5)}° E`;
         </section>
       )}
       <p class="source">
-        {p.source === 'pv' ? 'Details: Parks Victoria via DataVic (CC BY 4.0).' : 'Location: OpenStreetMap contributors.'}
-        {' '}Spotted something out of date? Conditions change — always check before you travel.
+        {curated ? 'A hand-picked local favourite.' : p.source === 'pv' ? 'Details: Parks Victoria via DataVic (CC BY 4.0).' : 'Location: OpenStreetMap contributors.'}
+        {curated && p.approx && ' The map pin is approximate.'}
+        {' '}Spotted something out of date? Opening hours and conditions change — always check before you travel.
       </p>
     </article>
 
@@ -90,8 +95,9 @@ const coordText = `${Math.abs(lat).toFixed(5)}° S, ${lng.toFixed(5)}° E`;
           <tr><th>Type</th><td>{cat.one}</td></tr>
           {p.ele && <tr><th>Elevation</th><td>{p.ele.toLocaleString()} m</td></tr>}
           {p.nearestTown && <tr><th>Nearest town</th><td><a href={p.nearestTown.url}>{p.nearestTown.name}</a> · {fmtKm(p.nearestTown.km)} {p.nearestTown.dir}</td></tr>}
-          <tr><th>{isRoute ? 'Start point' : 'Location'}</th><td>{coordText}</td></tr>
+          <tr><th>{isRoute ? 'Start point' : 'Location'}</th><td>{coordText}{curated && p.approx && ' (approx.)'}</td></tr>
           {p.source === 'pv' && <tr><th>Managed by</th><td>Parks Victoria</td></tr>}
+          {curated && p.website && <tr><th>Website</th><td><a href={p.website} rel="noopener" target="_blank">{new URL(p.website).hostname.replace(/^www\./, '')}</a></td></tr>}
         </table>
         <div class="actions">
           <a class="btn" href={atlasLink}>Open in atlas</a>
@@ -114,6 +120,9 @@ const coordText = `${Math.abs(lat).toFixed(5)}° S, ${lng.toFixed(5)}° E`;
   .body h2.label { margin-bottom: 10px; }
   .grades { padding: 0; margin: 0 0 1em; list-style: none; font: 700 1.05rem var(--sans); color: var(--leather); }
   .note { color: var(--ink-2); font-style: italic; }
+  .tip { background: var(--yellow); border: var(--line); border-radius: 14px; padding: 12px 16px; box-shadow: var(--pop); font-weight: 500; }
+  .tip b { display: block; font: 800 .8rem var(--sans); font-stretch: 75%; font-variation-settings: 'wdth' 75; text-transform: uppercase; letter-spacing: .05em; }
+  .body > .chips { margin-top: 18px; }
   .closed { background: var(--pink); border: var(--line); box-shadow: var(--pop); padding: 12px 16px; border-radius: 14px; color: var(--ink); }
   .nearby { padding: 0; margin: 0; list-style: none; columns: 2; column-gap: 28px; }
   .nearby li { break-inside: avoid; padding: 5px 0; border-bottom: 1px dashed var(--rule); }

@@ -6,7 +6,7 @@ interface Props { title: string; description?: string; wide?: boolean }
 const { title, description = 'Explore Victoria’s High Country — huts, campgrounds, walks, 4WD tracks, peaks and gold-rush towns, with a detailed topographic atlas.', wide = false } = Astro.props;
 const fullTitle = title === 'High Country' ? 'High Country — Victoria’s Alpine Atlas' : `${title} · High Country`;
 const nav = [
-  ['/map/', 'Atlas'], ['/huts/', 'Huts'], ['/campgrounds/', 'Camping'], ['/walks/', 'Walks'],
+  ['/map/', 'Atlas'], ['/favourites/', 'Favourites'], ['/huts/', 'Huts'], ['/campgrounds/', 'Camping'], ['/walks/', 'Walks'],
   ['/drives/', '4WD'], ['/peaks/', 'Peaks'], ['/towns/', 'Towns'],
 ];
 ---
