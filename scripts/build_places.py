@@ -3,7 +3,7 @@ and write public/data/places.geojson (map symbols + search box). Re-run any time
 import json, re, urllib.request, urllib.parse
 
 BBOX = (-37.9, 145.5, -36.1, 148.3)  # south, west, north, east
-Q = """[out:json][timeout:180];
+Q = """[out:json][timeout:240];
 (
   node["place"~"^(city|town|village|hamlet|locality)$"]["name"]({b});
   node["natural"~"^(peak|saddle|waterfall|cave_entrance)$"]["name"]({b});
@@ -43,7 +43,12 @@ for url in MIRRORS:
     try:
         req = urllib.request.Request(url, data=urllib.parse.urlencode({"data": Q}).encode(),
                                      headers={"User-Agent": "high-country-atlas/1.0"})
-        els = json.load(urllib.request.urlopen(req, timeout=300))["elements"]
+        resp = json.load(urllib.request.urlopen(req, timeout=300))
+        els = resp["elements"]
+        # Overpass reports timeouts and memory limits as a "remark" with few or no elements,
+        # rather than an HTTP error, so treat a suspiciously small answer as a failure too.
+        if resp.get("remark") or len(els) < 500:
+            raise RuntimeError(f"incomplete answer ({len(els)} elements): {resp.get('remark', 'no remark')}")
         break
     except Exception as ex:
         print("failed", url, ex)
