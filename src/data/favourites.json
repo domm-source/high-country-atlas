@@ -6,8 +6,14 @@
       "slug": "mt-buffalo-chalet",
       "name": "Mt Buffalo Chalet",
       "town": "Mount Buffalo",
-      "tags": ["History", "Food & drink"],
-      "coords": [146.81995, -36.72222],
+      "tags": [
+        "History",
+        "Food & drink"
+      ],
+      "coords": [
+        146.81995,
+        -36.72222
+      ],
       "blurb": "The grand old guesthouse on top of Mt Buffalo is waking up after two decades.",
       "body": [
         "Perched on the edge of Mt Buffalo’s granite plateau, the heritage-listed chalet sat closed for around twenty years. It’s now coming back to life in stages: outdoor-education school camps are already running, with a café and, later, heritage accommodation on the way.",
@@ -20,8 +26,14 @@
       "slug": "mystic-bike-park",
       "name": "Mystic Bike Park",
       "town": "Bright",
-      "tags": ["Mountain biking", "Family"],
-      "coords": [146.97614, -36.74188],
+      "tags": [
+        "Mountain biking",
+        "Family"
+      ],
+      "coords": [
+        146.97614,
+        -36.74188
+      ],
       "blurb": "50-plus km of purpose-built trails in the pines, four minutes from town.",
       "body": [
         "Bright’s home trails cover everything from a flat, groomed family loop right off the car park to technical singletrack, flow lines and jump trails higher up the hill.",
@@ -34,9 +46,14 @@
       "slug": "jenveys-swimming-hole",
       "name": "Jenvey’s swimming hole",
       "town": "Bright",
-      "tags": ["Swimming", "Free"],
-      "coords": [146.9686, -36.7271],
-      "approx": true,
+      "tags": [
+        "Swimming",
+        "Free"
+      ],
+      "coords": [
+        146.97312,
+        -36.72492
+      ],
       "blurb": "A locals’ swim in the Ovens River, a short walk from the middle of Bright.",
       "body": [
         "Tucked along the Ovens River off Mountbatten Avenue, Jenvey’s is a summer favourite for a quick dip after a hot ride or walk.",
@@ -48,9 +65,13 @@
       "slug": "bright-brewery",
       "name": "Bright Brewery",
       "town": "Bright",
-      "tags": ["Food & drink"],
-      "coords": [146.9555, -36.7289],
-      "approx": true,
+      "tags": [
+        "Food & drink"
+      ],
+      "coords": [
+        146.96176,
+        -36.72646
+      ],
       "blurb": "A Bright institution: mountain-made beer and a tasting paddle on Gavan Street.",
       "body": [
         "Grab a paddle of their MountainCrafted core range at the Gavan Street brewpub and you’ll see why it’s the default post-ride stop in town.",
@@ -63,8 +84,15 @@
       "slug": "rail-trail-bright-to-porepunkah",
       "name": "Rail trail: Bright to Porepunkah",
       "town": "Bright",
-      "tags": ["Cycling", "Family", "Free"],
-      "coords": [146.95957, -36.72963],
+      "tags": [
+        "Cycling",
+        "Family",
+        "Free"
+      ],
+      "coords": [
+        146.95957,
+        -36.72963
+      ],
       "blurb": "The flattest, friendliest 6 km in the valley — on two wheels.",
       "body": [
         "This sealed stretch of the Murray to Mountains Rail Trail follows the old railway from Bright to Porepunkah: off-road, almost dead flat, with bridges and river views the whole way.",
@@ -77,8 +105,15 @@
       "slug": "lake-catani",
       "name": "Lake Catani",
       "town": "Mount Buffalo",
-      "tags": ["Swimming", "Paddling", "Camping"],
-      "coords": [146.80925, -36.73319],
+      "tags": [
+        "Swimming",
+        "Paddling",
+        "Camping"
+      ],
+      "coords": [
+        146.80925,
+        -36.73319
+      ],
       "blurb": "Swim, paddle or camp beside a snow-gum lake high on the Buffalo plateau.",
       "body": [
         "Lake Catani is the summer hub of Mt Buffalo: swimming, canoeing and kayaking on a calm alpine lake (no motorboats), with picnic spots under the snow gums.",
@@ -91,9 +126,13 @@
       "slug": "big-hill-mountain-bike-park",
       "name": "Big Hill Mountain Bike Park",
       "town": "Mount Beauty",
-      "tags": ["Mountain biking"],
-      "coords": [147.1812, -36.7437],
-      "approx": true,
+      "tags": [
+        "Mountain biking"
+      ],
+      "coords": [
+        147.17492,
+        -36.74266
+      ],
       "blurb": "Three decades of hand-cut, rough-and-rowdy singletrack, right in town.",
       "body": [
         "One of the pioneers of Australian mountain biking. Big Hill has around 40–50 km of mostly hand-built singletrack, from mellow cross-country loops to serious downhill lines.",
@@ -106,8 +145,13 @@
       "slug": "milawa-cheese-company",
       "name": "Milawa Cheese Company",
       "town": "Milawa",
-      "tags": ["Food & drink"],
-      "coords": [146.43461, -36.43416],
+      "tags": [
+        "Food & drink"
+      ],
+      "coords": [
+        146.43461,
+        -36.43416
+      ],
       "blurb": "Handmade cheese in the old Milawa butter factory, since 1988.",
       "body": [
         "Work your way through a tasting of their cow and goat cheeses, made and matured by hand on site. The old butter factory also houses a kitchen, Milawa Bread and the Wood Park Wines cellar door.",
@@ -119,8 +163,14 @@
       "slug": "old-beechworth-gaol",
       "name": "Old Beechworth Gaol",
       "town": "Beechworth",
-      "tags": ["History", "Family"],
-      "coords": [146.68994, -36.35769],
+      "tags": [
+        "History",
+        "Family"
+      ],
+      "coords": [
+        146.68994,
+        -36.35769
+      ],
       "blurb": "A granite gaol with 140 years of stories — and strong links to the Kelly story.",
       "body": [
         "Built from local granite, the gaol held prisoners from 1864 until it closed in 2004. Guided tours take you through the courtyard, cell blocks and solitary cells.",
@@ -133,8 +183,14 @@
       "slug": "dargo-hotel",
       "name": "Dargo Hotel",
       "town": "Dargo",
-      "tags": ["Food & drink", "4WD"],
-      "coords": [147.25139, -37.46163],
+      "tags": [
+        "Food & drink",
+        "4WD"
+      ],
+      "coords": [
+        147.25139,
+        -37.46163
+      ],
       "blurb": "An 1898 bush pub at the bottom of the Dargo High Plains Road.",
       "body": [
         "Little has changed at the Dargo Hotel since the 1890s, and that’s the point. It’s the classic meeting spot for four-wheel drivers heading up to the high plains, with meals, a beer garden, and motel rooms, cabins and bunk rooms out back.",
@@ -147,8 +203,15 @@
       "slug": "oriental-claims",
       "name": "Oriental Claims",
       "town": "Omeo",
-      "tags": ["History", "Walks", "Free"],
-      "coords": [147.57433, -37.10694],
+      "tags": [
+        "History",
+        "Walks",
+        "Free"
+      ],
+      "coords": [
+        147.57433,
+        -37.10694
+      ],
       "blurb": "Walk through 30-metre cliffs carved by one of the world’s biggest gold-sluicing operations.",
       "body": [
         "For more than 50 years, miners blasted the hillsides along Livingstone Creek with high-pressure water to wash out the gold, leaving behind dramatic sculpted cliffs.",
@@ -160,8 +223,13 @@
       "slug": "jamieson-brewery-and-grill",
       "name": "Jamieson Brewery & Grill",
       "town": "Jamieson",
-      "tags": ["Food & drink"],
-      "coords": [146.13247, -37.28052],
+      "tags": [
+        "Food & drink"
+      ],
+      "coords": [
+        146.13247,
+        -37.28052
+      ],
       "approx": true,
       "draft": true,
       "blurb": "A riverside pub and grill on the Goulburn at Jamieson.",

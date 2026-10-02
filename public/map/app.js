@@ -157,11 +157,32 @@ const KIND_LABEL = {
   walk: 'Walk', drive: 'Drive / 4WD tour', ride: 'Ride', favourite: 'Local favourite',
 };
 const popup = new maplibregl.Popup({ closeButton: false, offset: 12, maxWidth: '260px' });
+// Links from map features to their pages on the website (built by src/pages/data/links.json.js).
+// Names repeat, so pick the entry with that kind and name nearest to where the popup opens.
+let pageLinks = {};
+fetch('/data/links.json').then((r) => r.json()).then((d) => { pageLinks = d; }).catch(() => {});
+function pageUrl(props, lngLat) {
+  const [lng, lat] = Array.isArray(lngLat) ? lngLat : [lngLat.lng, lngLat.lat];
+  let best = null, bestD = Infinity;
+  for (const [x, y, url] of pageLinks[`${props.k}|${props.n}`] || []) {
+    const d = (x - lng) ** 2 + (y - lat) ** 2;
+    if (d < bestD) { best = url; bestD = d; }
+  }
+  return best;
+}
+function addPageLink(el, props, lngLat) {
+  const url = pageUrl(props, lngLat);
+  if (!url) return;
+  const a = el.appendChild(document.createElement('a'));
+  a.className = 'pop-link'; a.href = url; a.textContent = 'Read more →';
+}
+
 function showPopup(lngLat, props) {
   const el = document.createElement('div');
   const name = el.appendChild(document.createElement('div')); name.className = 'pop-name'; name.textContent = props.n;
   const meta = el.appendChild(document.createElement('div')); meta.className = 'pop-meta';
   meta.textContent = [KIND_LABEL[props.k] || '', props.e ? `${props.e.toLocaleString()} m` : ''].filter(Boolean).join(' · ');
+  addPageLink(el, props, lngLat);
   popup.setLngLat(lngLat).setDOMContent(el).addTo(map);
 }
 // Local favourites link through to their page on the website.
@@ -214,6 +235,7 @@ function showPvPopup(lngLat, props) {
     details.appendChild(document.createElement('summary')).textContent = 'Getting there';
     add('pop-note', p.a, details);
   }
+  addPageLink(el, p, lngLat);
   pvPopup.setLngLat(lngLat).setDOMContent(el).addTo(map);
 }
 const pvPopup = new maplibregl.Popup({ closeButton: true, offset: 12, maxWidth: '300px', className: 'pv' });
