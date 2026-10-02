@@ -1,0 +1,70 @@
+# Weekly data refresh: re-download OpenStreetMap places and Parks Victoria sites/routes,
+# and commit them only if they changed, pass the sanity check and the site still builds.
+# The commit triggers Vercel to publish the update. Run it by hand from the Actions tab too.
+name: Weekly data refresh
+
+on:
+  schedule:
+    - cron: '0 11 * * 1' # Mondays 11:00 UTC = 10 pm Melbourne in summer (9 pm in winter)
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: refresh-data
+  cancel-in-progress: false
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+
+      # Each download step may fail (e.g. busy OpenStreetMap servers). If it does,
+      # put the committed data back so a half-finished download is never kept.
+      - name: Download OpenStreetMap places
+        id: places
+        continue-on-error: true
+        run: python scripts/build_places.py
+
+      - name: Download Parks Victoria sites and routes
+        id: parks
+        continue-on-error: true
+        run: python scripts/build_parks.py
+
+      - name: Restore committed data if a download failed
+        if: steps.places.outcome == 'failure' || steps.parks.outcome == 'failure'
+        run: |
+          echo "::warning::A download failed (places: ${{ steps.places.outcome }}, parks: ${{ steps.parks.outcome }}). Keeping last week's data."
+          git checkout -- public/data
+
+      - name: Check nothing important went missing
+        run: python scripts/check_data.py
+
+      - name: Check the site still builds
+        run: |
+          npm ci
+          npm run build
+
+      - name: Commit if anything changed
+        run: |
+          if git diff --quiet -- public/data; then
+            echo "No data changes this week."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add public/data
+          git commit -m "Weekly data refresh ($(date -u +%Y-%m-%d))"
+          git push

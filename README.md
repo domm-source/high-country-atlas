@@ -36,7 +36,15 @@ npm run dev
 
 Then open http://localhost:4321. `npm run build` writes the finished site to `dist/`.
 
-## Refresh the data
+## Automatic weekly refresh
+
+A GitHub Action (`.github/workflows/refresh-data.yml`) runs every Monday night (11:00 UTC). It re-downloads the OpenStreetMap places and Parks Victoria sites and routes, then commits them only if they changed, nothing important went missing (`scripts/check_data.py` rejects any file that lost more than 20% of its features), and the site still builds. That commit makes Vercel publish the update. If a download fails, last week's data is kept and the job tries again next week.
+
+To run it straight away: GitHub → **Actions** → **Weekly data refresh** → **Run workflow**.
+
+Road & track closures don't need this — they're fetched live from Vicmap in the browser on every visit.
+
+## Refresh the data by hand
 
 Run both, in this order (the second removes OpenStreetMap campsites that duplicate Parks Victoria ones), then rebuild:
 
