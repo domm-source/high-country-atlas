@@ -143,9 +143,9 @@ const ICONS = {
   .more { margin-top: auto; padding-top: 14px; font: 600 .95rem var(--sans); }
   .conditions h2 span { color: #b3191b; }
   #closure-list { list-style: none; padding: 0; margin: 0; }
-  #closure-list li { padding: 6px 0; border-top: 1px dashed var(--rule); font-size: .92rem; }
-  #closure-list b { font: 600 1rem var(--sans); }
-  #closure-list small { display: block; color: var(--ink-3); }
+  #closure-list :global(li) { padding: 6px 0; border-top: 1px dashed var(--rule); font-size: .92rem; }
+  #closure-list :global(b) { font: 600 1rem var(--sans); }
+  #closure-list :global(small) { display: block; color: var(--ink-3); }
   .muted { color: var(--ink-3); }
 
   /* ---------- Category grid ---------- */
