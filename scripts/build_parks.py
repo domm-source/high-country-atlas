@@ -1,10 +1,10 @@
 """Download Parks Victoria recreation sites (campgrounds, picnic areas) and official
 walks / drives from the Vicmap open data service, and write compact GeoJSON for the map:
 
-  data/pv_sites.geojson   points, with facilities, description and directions
-  data/pv_routes.geojson  simplified lines, with distance, time, grade and description
+  public/data/pv_sites.geojson   points, with facilities, description and directions
+  public/data/pv_routes.geojson  simplified lines, with distance, time, grade and description
 
-It also removes OpenStreetMap campsites from data/places.geojson that sit within 300 m
+It also removes OpenStreetMap campsites from public/data/places.geojson that sit within 300 m
 of a Parks Victoria campground, so the map doesn't show the same campground twice.
 Run it after scripts/build_places.py.
 
@@ -139,18 +139,18 @@ def write(path, features):
 
 sites = [site(f) for f in fetch("recweb_site") if f.get("geometry")]
 routes = [r for r in (route(f) for f in fetch("recweb_tracks") if f.get("geometry")) if r]
-write("data/pv_sites.geojson", sites)
-write("data/pv_routes.geojson", routes)
+write("public/data/pv_sites.geojson", sites)
+write("public/data/pv_routes.geojson", routes)
 
 # Drop OSM campsites that duplicate a Parks Victoria campground (within ~300 m).
 camps = [s["geometry"]["coordinates"] for s in sites if s["properties"]["k"] == "pvcamp"]
 def near(c, others, metres=300):
     return any(math.hypot((c[0] - o[0]) * 89_000, (c[1] - o[1]) * 111_000) < metres for o in others)
-places = json.load(open("data/places.geojson"))
+places = json.load(open("public/data/places.geojson"))
 before = len(places["features"])
 places["features"] = [f for f in places["features"]
                       if not (f["properties"]["k"] == "campsite" and near(f["geometry"]["coordinates"], camps))]
-write("data/places.geojson", places["features"])
+write("public/data/places.geojson", places["features"])
 
 from collections import Counter
 print(f"{len(sites)} sites {dict(Counter(s['properties']['k'] for s in sites))}")

@@ -1,0 +1,139 @@
+---
+import Base from '../../layouts/Base.astro';
+import MiniMap from '../../components/MiniMap.astro';
+import NearbyClosures from '../../components/NearbyClosures.astro';
+import { getPlaces, getCategory, whereText, fmtKm } from '../../lib/places.js';
+
+export function getStaticPaths() {
+  return getPlaces().map((place) => ({ params: { category: place.category, slug: place.slug }, props: { place } }));
+}
+
+const { place: p } = Astro.props;
+const cat = getCategory(p.category);
+const where = whereText(p);
+const [lng, lat] = p.coords;
+const isRoute = !!p.bbox;
+
+// A plain, factual opening line for places that don't come with a written description.
+const KIND_PHRASE = {
+  hut: 'a hut', campsite: 'a campsite', peak: 'a peak', lookout: 'a lookout', lake: 'a lake', cave: 'a cave',
+  attraction: 'a point of interest', city: 'a town', town: 'a town', village: 'a village', resort: 'an alpine resort',
+  pvcamp: 'a Parks Victoria campground', pvpicnic: 'a Parks Victoria picnic area', pvsite: 'a Parks Victoria recreation site',
+  walk: 'a Parks Victoria walk', drive: 'a Parks Victoria touring route', ride: 'a Parks Victoria riding route',
+};
+const intro = p.kind === 'peak' && p.ele
+  ? `${p.name} rises to ${p.ele.toLocaleString()} m, ${where}.`
+  : ['city', 'town', 'village', 'resort'].includes(p.kind)
+    ? `${p.name} is ${KIND_PHRASE[p.kind]} in Victoria’s High Country${p.nearestTown ? `, ${fmtKm(p.nearestTown.km)} ${p.nearestTown.dir} of ${p.nearestTown.name}` : ''}.`
+    : `${p.name} is ${KIND_PHRASE[p.kind] || 'a place'} in Victoria’s High Country, ${where}.`;
+
+const zoom = isRoute ? 12.5 : p.category === 'towns' ? 12.5 : p.category === 'peaks' ? 13 : 14;
+const atlasLink = `/map/#${zoom}/${lat}/${lng}`;
+const directions = `https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}`;
+const coordText = `${Math.abs(lat).toFixed(5)}° S, ${lng.toFixed(5)}° E`;
+---
+<Base title={p.name} description={`${p.name} — ${cat.one.toLowerCase()} ${where}, in Victoria’s High Country. Map, directions, conditions and what’s nearby.`}>
+  <nav class="crumbs label" aria-label="Breadcrumb"><a href="/">Home</a> › <a href={`/${cat.id}/`}>{cat.many}</a></nav>
+  <header class="head">
+    <h1>{p.name}</h1>
+    <p class="sub">{cat.one} · {where}{p.ele ? ` · ${p.ele.toLocaleString()} m` : ''}</p>
+  </header>
+
+  <div class="layout">
+    <article class="body">
+      {p.closure && (
+        <p class="closed" hidden data-start={p.closure.s} data-end={p.closure.o}>
+          <b>Closed{p.closure.r ? ` · ${p.closure.r}` : ''}</b>{p.closure.o && ` — reopens ${new Date(p.closure.o).toLocaleDateString('en-AU', { day: 'numeric', month: 'long', year: 'numeric' })}`}.
+          {p.closure.d && <span> {p.closure.d}</span>}
+        </p>
+      )}
+
+      <p class="lead">{intro}</p>
+      {p.grades?.length > 0 && <ul class="grades">{p.grades.map((g) => <li>{g}</li>)}</ul>}
+      {p.description && <p>{p.description}</p>}
+      {(p.experience || p.track) && <p class="note">{[p.experience, p.track].filter(Boolean).join(' · ')}</p>}
+      {p.facilities?.length > 0 && (
+        <section>
+          <h2 class="label">Facilities</h2>
+          <ul class="chips">{p.facilities.map((f) => <li class="chip">{f}</li>)}</ul>
+        </section>
+      )}
+      {p.access && (
+        <section>
+          <h2>Getting there</h2>
+          <p>{p.access}</p>
+        </section>
+      )}
+
+      <NearbyClosures lng={lng} lat={lat} />
+
+      {p.nearby.length > 0 && (
+        <section>
+          <h2>Nearby</h2>
+          <ul class="nearby">
+            {p.nearby.map((n) => (
+              <li><a href={n.url}>{n.name}</a> <span>{n.category} · {fmtKm(n.km)} {n.dir}</span></li>
+            ))}
+          </ul>
+        </section>
+      )}
+      <p class="source">
+        {p.source === 'pv' ? 'Details: Parks Victoria via DataVic (CC BY 4.0).' : 'Location: OpenStreetMap contributors.'}
+        {' '}Spotted something out of date? Conditions change — always check before you travel.
+      </p>
+    </article>
+
+    <aside class="side">
+      <MiniMap lng={lng} lat={lat} zoom={zoom} title={`Map of ${p.name}`} />
+      <div class="card facts">
+        <table class="ledger">
+          <tr><th>Type</th><td>{cat.one}</td></tr>
+          {p.ele && <tr><th>Elevation</th><td>{p.ele.toLocaleString()} m</td></tr>}
+          {p.nearestTown && <tr><th>Nearest town</th><td><a href={p.nearestTown.url}>{p.nearestTown.name}</a> · {fmtKm(p.nearestTown.km)} {p.nearestTown.dir}</td></tr>}
+          <tr><th>{isRoute ? 'Start point' : 'Location'}</th><td>{coordText}</td></tr>
+          {p.source === 'pv' && <tr><th>Managed by</th><td>Parks Victoria</td></tr>}
+        </table>
+        <div class="actions">
+          <a class="btn" href={atlasLink}>Open in atlas</a>
+          <a class="btn ghost" href={directions} rel="noopener" target="_blank">Directions</a>
+        </div>
+      </div>
+    </aside>
+  </div>
+</Base>
+
+<style>
+  .crumbs a { color: inherit; text-decoration: none; }
+  .crumbs a:hover { color: var(--rust); }
+  .head { margin: 6px 0 24px; padding-bottom: 14px; border-bottom: 3px double var(--rule); }
+  .sub { margin: 0; font: 500 1.05rem var(--slab); color: var(--ink-2); }
+  .layout { display: grid; grid-template-columns: minmax(0, 1fr) 380px; gap: 36px; align-items: start; }
+  .lead { font-size: 1.15rem; }
+  .body section { margin-top: 28px; }
+  .body h2.label { margin-bottom: 10px; }
+  .grades { padding: 0; margin: 0 0 1em; list-style: none; font: 600 1.05rem var(--slab); color: var(--leather); }
+  .note { color: var(--ink-2); font-style: italic; }
+  .closed { background: #f6dcd2; border-left: 4px solid #b3191b; padding: 10px 14px; border-radius: 4px; color: #6d1410; }
+  .nearby { padding: 0; margin: 0; list-style: none; columns: 2; column-gap: 28px; }
+  .nearby li { break-inside: avoid; padding: 5px 0; border-bottom: 1px dashed var(--rule); }
+  .nearby a { font: 600 1rem var(--slab); }
+  .nearby span { display: block; font-size: .82rem; color: var(--ink-3); }
+  .source { margin-top: 32px; font-size: .82rem; color: var(--ink-3); }
+  .side { position: sticky; top: 90px; display: grid; gap: 16px; }
+  .facts { padding: 6px 18px 18px; }
+  .actions { display: flex; gap: 10px; margin-top: 14px; flex-wrap: wrap; }
+  @media (max-width: 900px) {
+    .layout { grid-template-columns: 1fr; }
+    .side { position: static; order: -1; }
+    .nearby { columns: 1; }
+  }
+</style>
+
+<script>
+  // Show a Parks Victoria closure only while it's in effect.
+  const today = new Date().toLocaleDateString('en-CA', { timeZone: 'Australia/Melbourne' });
+  for (const el of document.querySelectorAll<HTMLElement>('.closed')) {
+    const { start = '', end = '' } = el.dataset;
+    el.hidden = !(start <= today && (!end || end >= today));
+  }
+</script>

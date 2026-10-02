@@ -63,3 +63,6 @@ html, body { margin: 0; height: 100%; background: #f3efe4; color: var(--ink);
   .panel-body { padding: 0 12px 10px; }
   .panel.collapsed .panel-body { display: none; }
 }
+
+/* Embedded in the website: just the map. */
+.embed .search, .embed .panel { display: none; }

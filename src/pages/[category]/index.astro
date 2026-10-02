@@ -1,0 +1,58 @@
+---
+import Base from '../../layouts/Base.astro';
+import { CATEGORIES, getPlaces, whereText } from '../../lib/places.js';
+
+export function getStaticPaths() {
+  return CATEGORIES.map((category) => ({ params: { category: category.id }, props: { category } }));
+}
+
+const { category: cat } = Astro.props;
+const byHeight = cat.id === 'peaks';
+const places = getPlaces()
+  .filter((p) => p.category === cat.id)
+  .sort((a, b) => (byHeight ? (b.ele || 0) - (a.ele || 0) : 0) || a.name.localeCompare(b.name));
+
+// A–Z groups (or height bands for peaks).
+const groups = new Map();
+for (const p of places) {
+  const key = byHeight ? (p.ele ? `${Math.floor(p.ele / 250) * 250}+ m` : 'Height unknown') : p.name[0].toUpperCase().replace(/[^A-Z]/, '#');
+  if (!groups.has(key)) groups.set(key, []);
+  groups.get(key).push(p);
+}
+---
+<Base title={cat.many} description={`${places.length} ${cat.many.toLowerCase()} in Victoria’s High Country. ${cat.blurb}`}>
+  <nav class="crumbs label" aria-label="Breadcrumb"><a href="/">Home</a></nav>
+  <header class="head">
+    <h1>{cat.many}</h1>
+    <p class="sub">{places.length.toLocaleString()} in the High Country. {cat.blurb}</p>
+  </header>
+
+  {!byHeight && groups.size > 6 && (
+    <nav class="jump" aria-label="Jump to letter">{[...groups.keys()].map((k) => <a href={`#g-${k}`}>{k}</a>)}</nav>
+  )}
+
+  {[...groups].map(([key, items]) => (
+    <section class="group" id={`g-${key}`}>
+      <h2 class="label">{key}</h2>
+      <ul>
+        {items.map((p) => (
+          <li><a href={p.url}>{p.name}</a><span>{p.ele && !byHeight ? `${p.ele} m · ` : ''}{byHeight && p.ele ? `${p.ele.toLocaleString()} m · ` : ''}{whereText(p)}</span></li>
+        ))}
+      </ul>
+    </section>
+  ))}
+</Base>
+
+<style>
+  .crumbs a { color: inherit; text-decoration: none; }
+  .head { margin: 6px 0 24px; padding-bottom: 14px; border-bottom: 3px double var(--rule); }
+  .sub { margin: 0; color: var(--ink-2); font-size: 1.05rem; }
+  .jump { display: flex; flex-wrap: wrap; gap: 4px; margin-bottom: 20px; }
+  .jump a { font: 600 .95rem var(--slab); text-decoration: none; padding: 2px 8px; border: 1px solid var(--rule); border-radius: 3px; background: var(--snow); }
+  .group { margin-bottom: 24px; scroll-margin-top: 90px; }
+  .group h2 { border-bottom: 1px solid var(--rule); padding-bottom: 4px; }
+  ul { list-style: none; padding: 0; margin: 0; columns: 3 240px; column-gap: 32px; }
+  li { break-inside: avoid; padding: 5px 0; }
+  li a { font: 600 1rem var(--slab); }
+  li span { display: block; font-size: .8rem; color: var(--ink-3); line-height: 1.3; }
+</style>

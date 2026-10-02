@@ -1,0 +1,53 @@
+---
+import '../styles/global.css';
+import SiteSearch from '../components/SiteSearch.astro';
+
+interface Props { title: string; description?: string; wide?: boolean }
+const { title, description = 'Explore Victoria’s High Country — huts, campgrounds, walks, 4WD tracks, peaks and gold-rush towns, with a detailed topographic atlas.', wide = false } = Astro.props;
+const fullTitle = title === 'High Country' ? 'High Country — Victoria’s Alpine Atlas' : `${title} · High Country`;
+const nav = [
+  ['/map/', 'Atlas'], ['/huts/', 'Huts'], ['/campgrounds/', 'Camping'], ['/walks/', 'Walks'],
+  ['/drives/', '4WD'], ['/peaks/', 'Peaks'], ['/towns/', 'Towns'],
+];
+---
+<!doctype html>
+<html lang="en-AU">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{fullTitle}</title>
+  <meta name="description" content={description}>
+  <meta property="og:title" content={fullTitle}>
+  <meta property="og:description" content={description}>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Ccircle cx='8' cy='8' r='7.5' fill='%23f2e8d2' stroke='%239c3d1b'/%3E%3Cpath d='M2.5 12l3.5-6 2 3 2-4 3.5 7z' fill='%232a1f16'/%3E%3C/svg%3E">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Rye&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400&family=Zilla+Slab:wght@500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+  <header class="site-header">
+    <div class="bar">
+      <a class="wordmark" href="/">High Country<span>Victoria’s Alpine Atlas</span></a>
+      <nav aria-label="Main">
+        {nav.map(([href, label]) => <a href={href} aria-current={Astro.url.pathname.startsWith(href) ? 'page' : undefined}>{label}</a>)}
+      </nav>
+      <SiteSearch />
+    </div>
+  </header>
+
+  <main class:list={[{ wide }]}>
+    <slot />
+  </main>
+
+  <footer class="site-footer">
+    <div class="ornament" aria-hidden="true">✦ ✦ ✦</div>
+    <p>
+      Map data © <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors (ODbL).
+      Parks Victoria sites, walks and road closures © State of Victoria (DEECA),
+      <a href="https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</a>, via <a href="https://discover.data.vic.gov.au/">DataVic</a>.
+      Terrain: Mapzen / AWS Terrain Tiles. Tiles by <a href="https://openfreemap.org">OpenFreeMap</a>.
+    </p>
+    <p class="caveat">Conditions in the High Country change fast. Always check with Parks Victoria and VicEmergency before you head out.</p>
+  </footer>
+</body>
+</html>

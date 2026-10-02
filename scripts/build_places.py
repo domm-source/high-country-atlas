@@ -1,6 +1,6 @@
 """Fetch named places in Victoria's High Country from OpenStreetMap (Overpass API)
-and write data/places.geojson (map symbols + search box). Re-run any time to refresh."""
-import json, urllib.request, urllib.parse
+and write public/data/places.geojson (map symbols + search box). Re-run any time to refresh."""
+import json, re, urllib.request, urllib.parse
 
 BBOX = (-37.9, 145.5, -36.1, 148.3)  # south, west, north, east
 Q = """[out:json][timeout:180];
@@ -23,7 +23,12 @@ def kind(t):
     if n in ("peak","saddle","waterfall","cave_entrance"): return {"cave_entrance":"cave"}.get(n, n)
     if n == "water": return "lake"
     tr = t.get("tourism")
-    if tr in ("alpine_hut","wilderness_hut") or t.get("amenity") == "shelter": return "hut"
+    if tr in ("alpine_hut","wilderness_hut"): return "hut"
+    if t.get("amenity") == "shelter":
+        # Only bush/mountain shelters count as huts; picnic shelters, rotundas and bus stops are left out.
+        if t.get("shelter_type") in ("basic_hut", "weather_shelter", "rock_shelter", "lean_to"): return "hut"
+        if re.search(r"\bhut\b", t["name"], re.I): return "hut"
+        return None
     if tr == "camp_site": return "campsite"
     if tr == "viewpoint": return "lookout"
     if t.get("landuse") == "winter_sports": return "resort"
@@ -52,6 +57,7 @@ for e in els:
     lon = e.get("lon") or e.get("center", {}).get("lon")
     if lat is None: continue
     k = kind(t)
+    if k is None: continue
     key = (t["name"], k) if k in ("river", "park") else (t["name"], k, round(lat, 2), round(lon, 2))
     if key in seen: continue
     seen.add(key)
@@ -63,6 +69,6 @@ for e in els:
 out.sort(key=lambda p: p["n"])
 fc = {"type": "FeatureCollection", "features": [
     {"type": "Feature", "geometry": {"type": "Point", "coordinates": p.pop("c")}, "properties": p} for p in out]}
-json.dump(fc, open("data/places.geojson", "w"), separators=(",", ":"), ensure_ascii=False)
+json.dump(fc, open("public/data/places.geojson", "w"), separators=(",", ":"), ensure_ascii=False)
 from collections import Counter
 print(len(out), "places", dict(Counter(p["k"] for p in out)))

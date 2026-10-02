@@ -6,7 +6,13 @@ const demSource = new mlcontour.DemSource({ url: TERRARIUM, encoding: 'terrarium
 demSource.setupMaplibre(maplibregl);
 
 const EMPTY = { type: 'FeatureCollection', features: [] };
-const state = { theme: 'atlas', visible: {}, terrain: false, closures: EMPTY };
+// URL options used when the atlas is embedded in the website:
+//   ?embed      hide search + options panel     ?marker   pin the starting point
+//   ?fly        slow, non-interactive 3D drift  ?theme=   atlas | topo | goldfields
+const params = new URLSearchParams(location.search);
+const EMBED = params.has('embed'), FLY = params.has('fly'), MARKER = params.has('marker');
+if (EMBED) document.documentElement.classList.add('embed');
+const state = { theme: THEMES[params.get('theme')] ? params.get('theme') : 'atlas', visible: {}, terrain: FLY, closures: EMPTY };
 
 const map = new maplibregl.Map({
   container: 'map',
@@ -16,12 +22,29 @@ const map = new maplibregl.Map({
   maxBounds: HIGH_COUNTRY.bounds,
   minZoom: 6.5,
   maxPitch: 75,
-  hash: true,
-  attributionControl: { compact: false },
+  pitch: FLY ? 62 : 0,
+  hash: !EMBED,
+  interactive: !FLY,
+  cooperativeGestures: EMBED && !FLY, // in a page, scroll the page unless ctrl/two fingers are used
+  attributionControl: { compact: EMBED },
 });
-map.addControl(new maplibregl.NavigationControl({ visualizePitch: true }), 'top-right');
-map.addControl(new maplibregl.GeolocateControl({ positionOptions: { enableHighAccuracy: true }, trackUserLocation: true }), 'top-right');
+if (EMBED) {
+  // Embedded maps take their view from the hash (#zoom/lat/lng) without writing it back.
+  const [z, lat, lng] = location.hash.slice(1).split('/').map(Number);
+  if (!Number.isNaN(z) && !Number.isNaN(lat) && !Number.isNaN(lng)) map.jumpTo({ zoom: z, center: [lng, lat] });
+}
+if (!FLY) map.addControl(new maplibregl.NavigationControl({ visualizePitch: true }), 'top-right');
+if (!EMBED) map.addControl(new maplibregl.GeolocateControl({ positionOptions: { enableHighAccuracy: true }, trackUserLocation: true }), 'top-right');
 map.addControl(new maplibregl.ScaleControl({ unit: 'metric', maxWidth: 110 }), 'bottom-left');
+if (MARKER) map.once('load', () => new maplibregl.Marker({ color: '#9c3d1b' }).setLngLat(map.getCenter()).addTo(map));
+
+// Homepage background: drift slowly around the starting point, unless the viewer prefers less motion.
+if (FLY && !matchMedia('(prefers-reduced-motion: reduce)').matches) {
+  const drift = () => map.rotateTo(map.getBearing() + 40, { duration: 60000, easing: (t) => t });
+  map.once('idle', () => { applyTerrain(); drift(); map.on('moveend', drift); });
+} else if (FLY) {
+  map.once('load', applyTerrain);
+}
 
 // ---------- Icons (drawn on canvas, added on demand) ----------
 const ICONS = {
@@ -66,6 +89,7 @@ function applyTerrain() {
   }
 }
 
+document.querySelectorAll('#theme button').forEach((b) => b.classList.toggle('on', b.dataset.theme === state.theme));
 document.querySelectorAll('#theme button').forEach((btn) => btn.addEventListener('click', () => {
   if (btn.dataset.theme === state.theme) return;
   state.theme = btn.dataset.theme;
@@ -218,7 +242,7 @@ const norm = (s) => s.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '')
 
 let places = [];
 const loadJSON = (url) => fetch(url).then((r) => r.json());
-Promise.all(['data/places.geojson', 'data/pv_sites.geojson', 'data/pv_routes.geojson'].map(loadJSON)).then(([osm, sites, routes]) => {
+Promise.all(['/data/places.geojson', '/data/pv_sites.geojson', '/data/pv_routes.geojson'].map(loadJSON)).then(([osm, sites, routes]) => {
   places = [
     ...osm.features.map((f) => ({ ...f.properties, c: f.geometry.coordinates })),
     ...sites.features.map((f) => ({ ...f.properties, c: f.geometry.coordinates, pv: true })),

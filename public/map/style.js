@@ -28,6 +28,20 @@ const THEMES = {
     peak: '#3b3129', hut: '#b03a2e', camp: '#2f7a3b', lookout: '#7a4fa0', picnic: '#2f7394',
     walk: '#9b2fb5', drive: '#e27a00', ride: '#0f9494',
   },
+  // Aged survey-map look: sepia paper, iron-oxide roads, faded ink.
+  goldfields: {
+    bg: '#efe2c4', wood: '#dcd3a6', scrub: '#e4dab4', grass: '#ebdfbf', farm: '#efe3c6',
+    rock: '#e2d3b4', ice: '#f6efdf', wetland: '#dad5b3', urban: '#e3cfab',
+    water: '#b4c4bb', waterLine: '#6a8c94', waterLabel: '#43616b',
+    park: '#cbbf8b', parkLine: '#7d6b3a', parkLabel: '#5d4a25',
+    shadow: '#5a3b1e', highlight: '#fff3d6', accentShade: '#7a5a32', reliefOpacity: 0.6,
+    contour: '#a0703f', contourIndex: '#7f5225', contourLabel: '#7a4e24',
+    casing: '#7a5a3a', motorway: '#8f2f17', primary: '#9c3d1b', secondary: '#b0592b',
+    tertiary: '#f3e6c8', minor: '#f6ecd6', track: '#5c3a1c', path: '#9c3d1b',
+    boundary: '#7b5a7e', closed: '#c21d12', text: '#2a1f16', textMuted: '#5a4632', halo: '#efe2c4',
+    peak: '#3d2814', hut: '#8a2c14', camp: '#4f5d2f', lookout: '#6b4a74', picnic: '#4a6470',
+    walk: '#7a2e5c', drive: '#b5651d', ride: '#2f6e6a',
+  },
 };
 
 const FONT = { regular: ['Noto Sans Regular'], bold: ['Noto Sans Bold'], italic: ['Noto Sans Italic'] };
@@ -77,9 +91,9 @@ function buildStyle(themeName, demSource, visible, closures) {
           elevationKey: 'ele', levelKey: 'level', contourLayer: 'contours', overzoom: 1,
         })],
       },
-      places: { type: 'geojson', data: 'data/places.geojson' },
-      pv_sites: { type: 'geojson', data: 'data/pv_sites.geojson', attribution: VICMAP_CREDIT },
-      pv_routes: { type: 'geojson', data: 'data/pv_routes.geojson' },
+      places: { type: 'geojson', data: '/data/places.geojson' },
+      pv_sites: { type: 'geojson', data: '/data/pv_sites.geojson', attribution: VICMAP_CREDIT },
+      pv_routes: { type: 'geojson', data: '/data/pv_routes.geojson' },
       closures: { type: 'geojson', data: closures,
                   attribution: VICMAP_CREDIT },
     },

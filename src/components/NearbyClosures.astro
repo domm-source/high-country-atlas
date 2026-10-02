@@ -1,0 +1,52 @@
+---
+// Live road & track closures within ~10 km, fetched in the browser from the Vicmap open data service.
+interface Props { lng: number; lat: number }
+const { lng, lat } = Astro.props;
+---
+<section class="closures" data-lng={lng} data-lat={lat} hidden>
+  <h2>Track closures nearby</h2>
+  <p class="intro">Live from Vicmap. Closures change often — check Parks Victoria before you travel.</p>
+  <ul></ul>
+</section>
+
+<style>
+  .closures { background: #f6e3d8; border: 1px solid #d9a58f; border-radius: 6px; padding: 14px 18px; }
+  h2 { font-size: 1.15rem; color: #7a1f12; margin: 0; }
+  .intro { font-size: .85rem; color: var(--ink-2); margin: 2px 0 8px; }
+  ul { margin: 0; padding: 0; list-style: none; }
+  li { padding: 5px 0; border-top: 1px dashed #d9a58f; }
+  li b { font: 600 1rem var(--slab); }
+  li span { display: block; font-size: .85rem; color: var(--ink-2); }
+</style>
+
+<script>
+  const WFS = 'https://opendata.maps.vic.gov.au/geoserver/wfs';
+  const REASONS: Record<string, string> = { SeasonClosureUpd: 'Seasonal closure', 'Seasonal Closure': 'Seasonal closure' };
+  const fmt = (iso: string) => new Date(iso).toLocaleDateString('en-AU', { day: 'numeric', month: 'short', year: 'numeric' });
+
+  for (const box of document.querySelectorAll<HTMLElement>('.closures')) {
+    const lng = Number(box.dataset.lng), lat = Number(box.dataset.lat), d = 0.1; // ≈ 10 km
+    const today = new Date().toLocaleDateString('en-CA', { timeZone: 'Australia/Melbourne' });
+    const params = new URLSearchParams({
+      service: 'WFS', version: '2.0.0', request: 'GetFeature', outputFormat: 'application/json', srsName: 'EPSG:4326',
+      typeNames: 'open-data-platform:paim_vm_tr_road_closures',
+      propertyName: 'ezi_road_name_label,reason,reopen_date',
+      CQL_FILTER: `BBOX(geom,${lng - d},${lat - d},${lng + d},${lat + d},'EPSG:4326') AND status <> 'Open'`
+        + ` AND closure_date <= '${today}' AND (reopen_date >= '${today}' OR reopen_date IS NULL)`,
+    });
+    fetch(`${WFS}?${params}`).then((r) => r.json()).then((fc) => {
+      // One row per road: a closure is often split into many short segments.
+      const roads = new Map<string, any>();
+      for (const f of fc.features) roads.set(f.properties.ezi_road_name_label || 'Unnamed track', f.properties);
+      if (!roads.size) return;
+      const list = box.querySelector('ul')!;
+      for (const [name, p] of [...roads].sort((a, b) => a[0].localeCompare(b[0])).slice(0, 12)) {
+        const li = list.appendChild(document.createElement('li'));
+        li.appendChild(document.createElement('b')).textContent = name;
+        li.appendChild(document.createElement('span')).textContent =
+          `${REASONS[p.reason] || p.reason || 'Closed'} · ${p.reopen_date ? `reopens ${fmt(p.reopen_date)}` : 'no reopen date set'}`;
+      }
+      box.hidden = false;
+    }).catch(() => { /* Leave the section hidden if the service is unavailable. */ });
+  }
+</script>

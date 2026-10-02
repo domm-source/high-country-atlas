@@ -1,0 +1,206 @@
+---
+import Base from '../layouts/Base.astro';
+import { CATEGORIES, getPlaces, whereText } from '../lib/places.js';
+
+const places = getPlaces();
+const count = (id) => places.filter((p) => p.category === id).length;
+const huts = places.filter((p) => p.category === 'huts').map((p) => ({ n: p.name, u: p.url, w: whereText(p), c: p.coords }));
+// Hut of the week: picked by ISO week so it changes every Monday (in the browser, too — see script below).
+const week = Math.floor((Date.now() / 86400000 + 3) / 7);
+const hut = huts[week % huts.length];
+
+// Simple line icons for the category cards (24×24, stroke = currentColor).
+const ICONS = {
+  huts: 'M3 11l9-7 9 7M5 10v10h14V10M10 20v-6h4v6',
+  campgrounds: 'M12 4L3 20h18L12 4zM12 12l-3 8M12 12l3 8',
+  walks: 'M13 4a1.5 1.5 0 100 3 1.5 1.5 0 000-3zM10 21l2-6 3 3v3M12 15l1-5 3 3 3 1M13 10l-4 2-1 4',
+  drives: 'M4 15V11l2-4h12l2 4v4zM4 15v2h3v-2M17 15v2h3v-2M7 13h.01M17 13h.01M6 11h12',
+  rides: 'M6 17a3 3 0 100-6 3 3 0 000 6zM18 17a3 3 0 100-6 3 3 0 000 6zM6 14l4-7h5l3 7M10 7l2 7h-6',
+  peaks: 'M2 20l7-12 4 6 3-4 6 10z M9 8l1.5 2.5L12 9',
+  lookouts: 'M12 3l2.6 5.6 6.1.7-4.5 4.2 1.2 6L12 16.6 6.6 19.5l1.2-6L3.3 9.3l6.1-.7z',
+  'picnic-areas': 'M4 9h16M7 9l-3 11M17 9l3 11M3 14h18M12 9v5',
+  attractions: 'M12 21s-7-6.3-7-11a7 7 0 1114 0c0 4.7-7 11-7 11zM12 12.5a2.5 2.5 0 100-5 2.5 2.5 0 000 5z',
+  lakes: 'M3 10c2-2 4-2 6 0s4 2 6 0 4-2 6 0M3 15c2-2 4-2 6 0s4 2 6 0 4-2 6 0',
+  towns: 'M3 21V10l5-3 5 3v11M13 21V6l4-3 4 3v15M6 13h4M6 17h4M16 9h2M16 13h2M16 17h2',
+};
+---
+<Base title="High Country" wide>
+  <section class="hero">
+    <iframe class="hero-map" src="/map/?embed&fly&theme=goldfields#10.6/-36.95/147.15" title="" aria-hidden="true" tabindex="-1"></iframe>
+    <div class="hero-veil" aria-hidden="true"></div>
+    <div class="hero-copy">
+      <p class="kicker label">Gold · Cattle · Snow country</p>
+      <h1 class="display">High Country</h1>
+      <p class="lead">Huts, campgrounds, walks and 4WD tracks across the Victorian Alps — mapped in detail, with live track closures.</p>
+      <div class="cta">
+        <a class="btn" href="/map/">Open the atlas</a>
+        <a class="btn ghost" href="/huts/">Find a hut</a>
+      </div>
+    </div>
+  </section>
+
+  <div class="tally" aria-label="What’s on the map">
+    {[['huts', 'huts'], ['campgrounds', 'campgrounds'], ['walks', 'walks'], ['drives', '4WD & drives'], ['peaks', 'peaks']].map(([id, label]) => (
+      <a href={`/${id}/`}><b>{count(id).toLocaleString()}</b> {label}</a>
+    ))}
+  </div>
+
+  <div class="page">
+    <section class="split">
+      <article class="card feature" id="hut-of-week" data-huts={JSON.stringify(huts)}>
+        <p class="label">Hut of the week</p>
+        <h2><a href={hut.u}>{hut.n}</a></h2>
+        <p class="where">{hut.w}</p>
+        <iframe src={`/map/?embed&marker&theme=goldfields#13.5/${hut.c[1]}/${hut.c[0]}`} title={`Map of ${hut.n}`} loading="lazy"></iframe>
+        <a class="more" href={hut.u}>Read more & what’s nearby →</a>
+      </article>
+
+      <article class="card conditions">
+        <p class="label">Conditions now</p>
+        <h2><span id="closure-count">—</span> track closures</h2>
+        <p class="where">Live from Vicmap, across the High Country.</p>
+        <ul id="closure-list"><li class="muted">Checking…</li></ul>
+        <a class="more" href="/map/">See them on the atlas →</a>
+      </article>
+    </section>
+
+    <hr class="rule">
+
+    <section>
+      <h2 class="section-title">Explore the country</h2>
+      <div class="grid">
+        {CATEGORIES.map((c) => (
+          <a class="card cat" href={`/${c.id}/`}>
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d={ICONS[c.id]} /></svg>
+            <span class="cat-name">{c.many}</span>
+            <span class="cat-count">{count(c.id).toLocaleString()}</span>
+            <span class="cat-blurb">{c.blurb}</span>
+          </a>
+        ))}
+      </div>
+    </section>
+
+    <hr class="rule">
+
+    <section class="story">
+      <h2 class="section-title">A country shaped by gold, cattle and snow</h2>
+      <div class="cols">
+        <div>
+          <h3>Gold</h3>
+          <p>From the 1850s, gold drew diggers up the Ovens, Buckland and Mitta valleys. Towns like Beechworth, Harrietville and Omeo grew out of the rush, and old races and mine relics still turn up beside the tracks.</p>
+          <a href="/towns/">Gold-rush towns →</a>
+        </div>
+        <div>
+          <h3>Cattle</h3>
+          <p>For more than a century, cattlemen drove their herds onto the high plains each summer. The slab and corrugated-iron huts they built still shelter walkers, riders and four-wheel drivers today.</p>
+          <a href="/huts/">Mountain huts →</a>
+        </div>
+        <div>
+          <h3>Snow</h3>
+          <p>The same ranges hold Victoria’s alpine resorts and its highest summit, Mount Bogong. In winter the high roads close and the country belongs to skiers and snowshoers.</p>
+          <a href="/peaks/">The high peaks →</a>
+        </div>
+      </div>
+    </section>
+  </div>
+</Base>
+
+<style>
+  /* ---------- Hero: the atlas drifting in 3D behind the title ---------- */
+  .hero { position: relative; height: min(78vh, 720px); min-height: 460px; overflow: hidden; background: var(--paper-2); }
+  .hero-map { position: absolute; inset: -60px 0 0; width: 100%; height: calc(100% + 60px); border: 0; pointer-events: none; filter: sepia(.25) saturate(.9); }
+  .hero-veil {
+    position: absolute; inset: 0;
+    background:
+      radial-gradient(ellipse at 30% 55%, rgba(242, 232, 210, .92) 0%, rgba(242, 232, 210, .55) 38%, rgba(242, 232, 210, 0) 70%),
+      linear-gradient(to bottom, rgba(242, 232, 210, 0) 60%, var(--paper) 100%),
+      var(--grain);
+  }
+  .hero-copy { position: relative; max-width: 1100px; margin: 0 auto; padding: clamp(60px, 14vh, 140px) 20px 0; }
+  .kicker { color: var(--rust); margin: 0 0 10px; }
+  .hero h1 { font-size: clamp(3.2rem, 11vw, 7.5rem); line-height: .95; margin: 0; color: var(--ink); text-shadow: 0 2px 0 rgba(248, 243, 231, .8); }
+  .lead { max-width: 30em; font-size: clamp(1.05rem, 2vw, 1.3rem); margin: 18px 0 26px; color: var(--ink); }
+  .cta { display: flex; gap: 12px; flex-wrap: wrap; }
+
+  /* ---------- Tally strip ---------- */
+  .tally {
+    display: flex; justify-content: center; flex-wrap: wrap; gap: 6px 34px; padding: 16px 20px;
+    border-block: 3px double var(--rule); background: var(--paper-2) var(--grain);
+  }
+  .tally a { font: 500 1rem var(--slab); color: var(--ink-2); text-decoration: none; }
+  .tally b { font: 400 1.5rem var(--display); color: var(--rust); margin-right: 4px; }
+
+  .page { max-width: 1100px; margin: 0 auto; padding: 40px 20px 56px; }
+  .section-title { text-align: center; margin-bottom: 24px; }
+
+  /* ---------- Feature cards ---------- */
+  .split { display: grid; grid-template-columns: 1.2fr 1fr; gap: 24px; }
+  .feature, .conditions { padding: 20px 22px; display: flex; flex-direction: column; }
+  .feature h2 a { color: var(--ink); text-decoration: none; }
+  .feature h2 a:hover { color: var(--rust); }
+  .where { margin: -4px 0 14px; color: var(--ink-3); font: 500 .95rem var(--slab); }
+  .feature iframe { width: 100%; aspect-ratio: 16 / 9; border: 0; border-radius: 3px; background: var(--paper-2); }
+  .more { margin-top: auto; padding-top: 14px; font: 600 .95rem var(--slab); }
+  .conditions h2 span { color: #b3191b; }
+  #closure-list { list-style: none; padding: 0; margin: 0; }
+  #closure-list li { padding: 6px 0; border-top: 1px dashed var(--rule); font-size: .92rem; }
+  #closure-list b { font: 600 1rem var(--slab); }
+  #closure-list small { display: block; color: var(--ink-3); }
+  .muted { color: var(--ink-3); }
+
+  /* ---------- Category grid ---------- */
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 16px; }
+  .cat { display: grid; grid-template-columns: 40px 1fr auto; grid-template-rows: auto auto; column-gap: 12px; padding: 16px 18px; text-decoration: none; color: var(--ink); transition: transform .12s; }
+  .cat:hover { transform: translateY(-2px); border-color: var(--rust); }
+  .cat svg { grid-row: span 2; width: 36px; height: 36px; fill: none; stroke: var(--rust); stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
+  .cat-name { font: 700 1.15rem var(--slab); }
+  .cat-count { font: 400 1.1rem var(--display); color: var(--rust); }
+  .cat-blurb { grid-column: 2 / 4; font-size: .88rem; color: var(--ink-2); line-height: 1.4; }
+
+  /* ---------- Story ---------- */
+  .cols { display: grid; grid-template-columns: repeat(3, 1fr); gap: 32px; }
+  .cols h3 { font: 400 1.6rem var(--display); color: var(--rust); }
+  .cols a { font: 600 .95rem var(--slab); }
+
+  @media (max-width: 860px) {
+    .split, .cols { grid-template-columns: 1fr; }
+    .hero { height: 70vh; }
+  }
+</style>
+
+<script>
+  // Hut of the week: re-pick in the browser so it rolls over weekly even without a rebuild.
+  const card = document.getElementById('hut-of-week')!;
+  const huts = JSON.parse(card.dataset.huts!);
+  const hut = huts[Math.floor((Date.now() / 86400000 + 3) / 7) % huts.length];
+  const link = card.querySelector('h2 a') as HTMLAnchorElement;
+  if (link.getAttribute('href') !== hut.u) {
+    link.href = hut.u; link.textContent = hut.n;
+    card.querySelector('.where')!.textContent = hut.w;
+    (card.querySelector('.more') as HTMLAnchorElement).href = hut.u;
+    card.querySelector('iframe')!.src = `/map/?embed&marker&theme=goldfields#13.5/${hut.c[1]}/${hut.c[0]}`;
+  }
+
+  // Conditions now: count of closed roads across the High Country, and the next few due to reopen.
+  const today = new Date().toLocaleDateString('en-CA', { timeZone: 'Australia/Melbourne' });
+  const params = new URLSearchParams({
+    service: 'WFS', version: '2.0.0', request: 'GetFeature', outputFormat: 'application/json',
+    typeNames: 'open-data-platform:paim_vm_tr_road_closures', propertyName: 'ezi_road_name_label,reason,reopen_date',
+    CQL_FILTER: `BBOX(geom,145.5,-37.9,148.3,-36.1,'EPSG:4326') AND status <> 'Open' AND closure_date <= '${today}'`
+      + ` AND (reopen_date >= '${today}' OR reopen_date IS NULL)`,
+  });
+  const list = document.getElementById('closure-list')!;
+  fetch(`https://opendata.maps.vic.gov.au/geoserver/wfs?${params}`).then((r) => r.json()).then((fc) => {
+    const roads = new Map<string, any>();
+    for (const f of fc.features) if (f.properties.ezi_road_name_label) roads.set(f.properties.ezi_road_name_label, f.properties);
+    document.getElementById('closure-count')!.textContent = String(roads.size);
+    list.replaceChildren();
+    const reason = (r: string) => (/season/i.test(r) ? 'Seasonal closure' : r || 'Closed');
+    const fmt = (iso: string) => new Date(iso).toLocaleDateString('en-AU', { day: 'numeric', month: 'short' });
+    for (const [name, p] of [...roads].filter(([, p]) => p.reopen_date).sort((a, b) => a[1].reopen_date.localeCompare(b[1].reopen_date)).slice(0, 5)) {
+      const li = list.appendChild(document.createElement('li'));
+      li.appendChild(document.createElement('b')).textContent = name;
+      li.appendChild(document.createElement('small')).textContent = `${reason(p.reason)} · reopens ${fmt(p.reopen_date)}`;
+    }
+  }).catch(() => { list.innerHTML = '<li class="muted">Closures are unavailable right now.</li>'; });
+</script>
