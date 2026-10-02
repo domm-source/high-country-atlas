@@ -1,8 +1,8 @@
-/* High Country — "goldfields survey map" look: aged paper, iron-oxide ink, wood-type headings. */
+/* High Country — an old field-guide look: light paper, iron-oxide accents, warm serif headings. */
 :root {
-  --paper: #f2e8d2;
-  --paper-2: #e8d9b8;
-  --paper-3: #dcc89f;
+  --paper: #f5f0e4;
+  --paper-2: #ece4d2;
+  --paper-3: #ddd2bb;
   --ink: #2a1f16;
   --ink-2: #5a4632;
   --ink-3: #8a735a;
@@ -13,14 +13,14 @@
   --gum: #6f8068;
   --ochre: #c8902f;
   --snow: #f8f3e7;
-  --rule: rgba(90, 70, 50, .35);
+  --rule: rgba(90, 70, 50, .25);
 
-  --display: 'Rye', 'Zilla Slab', Georgia, serif;
-  --slab: 'Zilla Slab', Rockwell, Georgia, serif;
+  --display: 'Fraunces', Georgia, serif;
+  --sans: 'Work Sans', system-ui, sans-serif;
   --serif: 'Source Serif 4', Georgia, serif;
 
   /* Fine paper grain, drawn with an SVG noise filter. */
-  --grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .35 0 0 0 0 .25 0 0 0 0 .12 0 0 0 .09 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  --grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .35 0 0 0 0 .25 0 0 0 0 .12 0 0 0 .05 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
 }
 
 * { box-sizing: border-box; }
@@ -34,13 +34,13 @@ a { color: var(--rust); text-decoration-thickness: 1px; text-underline-offset: 3
 a:hover { color: var(--rust-dark); }
 img, iframe { max-width: 100%; }
 
-h1, h2, h3 { font-family: var(--slab); font-weight: 700; line-height: 1.15; color: var(--ink); margin: 0 0 .4em; }
+h1, h2, h3 { font-family: var(--display); font-weight: 600; line-height: 1.15; color: var(--ink); margin: 0 0 .4em; }
 h1 { font-size: clamp(2rem, 5vw, 3.2rem); }
 h2 { font-size: clamp(1.5rem, 3vw, 2rem); }
 h3 { font-size: 1.2rem; }
-.display { font-family: var(--display); font-weight: 400; letter-spacing: .01em; }
+.display { font-family: var(--display); font-weight: 500; letter-spacing: -.015em; }
 .label {
-  font: 600 .78rem/1.2 var(--slab); letter-spacing: .14em; text-transform: uppercase; color: var(--ink-3);
+  font: 500 .74rem/1.2 var(--sans); letter-spacing: .12em; text-transform: uppercase; color: var(--ink-3);
 }
 
 /* ---------- Header ---------- */
@@ -48,48 +48,44 @@ h3 { font-size: 1.2rem; }
   position: sticky; top: 0; z-index: 20;
   background: color-mix(in srgb, var(--paper) 92%, transparent) var(--grain);
   backdrop-filter: blur(6px);
-  border-bottom: 3px double var(--rule);
+  border-bottom: 1px solid var(--rule);
 }
 .bar { max-width: 1200px; margin: 0 auto; padding: 10px 20px; display: flex; align-items: center; gap: 22px; }
-.wordmark { font: 400 1.45rem/1 var(--display); color: var(--ink); text-decoration: none; white-space: nowrap; }
-.wordmark span { display: block; font: 600 .62rem/1.6 var(--slab); letter-spacing: .2em; text-transform: uppercase; color: var(--rust); }
+.wordmark { font: 600 1.4rem/1 var(--display); color: var(--ink); text-decoration: none; white-space: nowrap; }
+.wordmark span { display: block; font: 500 .6rem/1.7 var(--sans); letter-spacing: .16em; text-transform: uppercase; color: var(--rust); }
 .site-header nav { display: flex; gap: 2px; flex: 1; flex-wrap: wrap; }
 .site-header nav a {
-  font: 600 .95rem var(--slab); color: var(--ink-2); text-decoration: none; padding: 6px 10px; border-radius: 4px;
+  font: 500 .92rem var(--sans); color: var(--ink-2); text-decoration: none; padding: 6px 10px; border-radius: 4px;
 }
 .site-header nav a:hover, .site-header nav a[aria-current] { color: var(--rust); background: var(--paper-2); }
 
 /* ---------- Layout ---------- */
 main { max-width: 1100px; margin: 0 auto; padding: 32px 20px 56px; }
 main.wide { max-width: none; padding: 0; }
-.rule { border: 0; height: 12px; margin: 36px 0;
-  background: linear-gradient(var(--rule), var(--rule)) center 3px / 100% 1px no-repeat,
-              linear-gradient(var(--rule), var(--rule)) center 8px / 100% 1px no-repeat; }
-.ornament { text-align: center; color: var(--rust); letter-spacing: .6em; font-size: .8rem; }
+.rule { border: 0; border-top: 1px solid var(--rule); margin: 44px 0; }
 
 /* ---------- Cards, chips, buttons ---------- */
 .card {
   background: var(--snow) var(--grain); border: 1px solid var(--rule); border-radius: 6px;
-  box-shadow: 0 1px 0 rgba(255,255,255,.6) inset, 0 2px 0 var(--paper-3);
+  box-shadow: 0 1px 2px rgba(42, 31, 22, .06);
 }
 .btn {
-  display: inline-block; font: 700 1rem var(--slab); letter-spacing: .04em; text-decoration: none;
-  padding: 11px 20px; border-radius: 4px; border: 2px solid var(--rust); color: var(--snow); background: var(--rust);
-  box-shadow: 0 3px 0 var(--rust-dark);
+  display: inline-block; font: 600 .95rem var(--sans); text-decoration: none;
+  padding: 10px 18px; border-radius: 4px; border: 1px solid var(--rust); color: var(--snow); background: var(--rust);
 }
 .btn:hover { color: var(--snow); background: var(--rust-dark); }
 .btn.ghost { background: rgba(248, 243, 231, .85); color: var(--rust); }
 .chips { display: flex; flex-wrap: wrap; gap: 6px; padding: 0; margin: 0; list-style: none; }
-.chip { font: 500 .85rem var(--slab); background: var(--paper-2); border: 1px solid var(--rule); border-radius: 20px; padding: 2px 11px; }
+.chip { font: 400 .85rem var(--sans); background: var(--paper-2); border: 1px solid var(--rule); border-radius: 20px; padding: 2px 11px; }
 
 /* Ledger-style facts table */
 .ledger { width: 100%; border-collapse: collapse; font-size: .95rem; }
-.ledger th { font: 600 .75rem var(--slab); letter-spacing: .12em; text-transform: uppercase; color: var(--ink-3); text-align: left; padding: 8px 12px 8px 0; vertical-align: top; width: 38%; }
+.ledger th { font: 500 .72rem var(--sans); letter-spacing: .1em; text-transform: uppercase; color: var(--ink-3); text-align: left; padding: 8px 12px 8px 0; vertical-align: top; width: 38%; }
 .ledger td { padding: 8px 0; }
 .ledger tr + tr > * { border-top: 1px dashed var(--rule); }
 
 /* ---------- Footer ---------- */
-.site-footer { border-top: 3px double var(--rule); padding: 28px 20px 40px; text-align: center; color: var(--ink-2); font-size: .85rem; }
+.site-footer { border-top: 1px solid var(--rule); padding: 28px 20px 40px; text-align: center; color: var(--ink-2); font-size: .85rem; }
 .site-footer p { max-width: 760px; margin: 10px auto 0; }
 .site-footer .caveat { font-style: italic; }
 

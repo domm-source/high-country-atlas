@@ -105,18 +105,18 @@ const coordText = `${Math.abs(lat).toFixed(5)}° S, ${lng.toFixed(5)}° E`;
 <style>
   .crumbs a { color: inherit; text-decoration: none; }
   .crumbs a:hover { color: var(--rust); }
-  .head { margin: 6px 0 24px; padding-bottom: 14px; border-bottom: 3px double var(--rule); }
-  .sub { margin: 0; font: 500 1.05rem var(--slab); color: var(--ink-2); }
+  .head { margin: 6px 0 24px; padding-bottom: 14px; border-bottom: 1px solid var(--rule); }
+  .sub { margin: 0; font: 500 1.05rem var(--sans); color: var(--ink-2); }
   .layout { display: grid; grid-template-columns: minmax(0, 1fr) 380px; gap: 36px; align-items: start; }
   .lead { font-size: 1.15rem; }
   .body section { margin-top: 28px; }
   .body h2.label { margin-bottom: 10px; }
-  .grades { padding: 0; margin: 0 0 1em; list-style: none; font: 600 1.05rem var(--slab); color: var(--leather); }
+  .grades { padding: 0; margin: 0 0 1em; list-style: none; font: 600 1.05rem var(--sans); color: var(--leather); }
   .note { color: var(--ink-2); font-style: italic; }
   .closed { background: #f6dcd2; border-left: 4px solid #b3191b; padding: 10px 14px; border-radius: 4px; color: #6d1410; }
   .nearby { padding: 0; margin: 0; list-style: none; columns: 2; column-gap: 28px; }
   .nearby li { break-inside: avoid; padding: 5px 0; border-bottom: 1px dashed var(--rule); }
-  .nearby a { font: 600 1rem var(--slab); }
+  .nearby a { font: 600 1rem var(--sans); }
   .nearby span { display: block; font-size: .82rem; color: var(--ink-3); }
   .source { margin-top: 32px; font-size: .82rem; color: var(--ink-3); }
   .side { position: sticky; top: 90px; display: grid; gap: 16px; }
