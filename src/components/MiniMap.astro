@@ -1,13 +1,13 @@
 ---
 // The atlas, embedded with a pin. Lazy-loaded so long pages don't pull in the map until it's on screen.
 interface Props { lng: number; lat: number; zoom?: number; title: string; theme?: string }
-const { lng, lat, zoom = 14, title, theme = 'goldfields' } = Astro.props;
+const { lng, lat, zoom = 14, title, theme = 'topo' } = Astro.props;
 ---
 <figure class="mini-map card">
   <iframe src={`/map/?embed&marker&theme=${theme}#${zoom}/${lat}/${lng}`} title={title} loading="lazy"></iframe>
 </figure>
 
 <style>
-  .mini-map { margin: 0; padding: 6px; }
-  iframe { display: block; width: 100%; aspect-ratio: 4 / 3; border: 0; border-radius: 3px; background: var(--paper-2); }
+  .mini-map { margin: 0; padding: 0; overflow: hidden; }
+  iframe { display: block; width: 100%; aspect-ratio: 4 / 3; border: 0; background: var(--paper-2); }
 </style>

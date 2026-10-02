@@ -22,7 +22,7 @@ for (const p of places) {
 ---
 <Base title={cat.many} description={`${places.length} ${cat.many.toLowerCase()} in Victoria’s High Country. ${cat.blurb}`}>
   <nav class="crumbs label" aria-label="Breadcrumb"><a href="/">Home</a></nav>
-  <header class="head">
+  <header class="head" data-cat={cat.id}>
     <h1>{cat.many}</h1>
     <p class="sub">{places.length.toLocaleString()} in the High Country. {cat.blurb}</p>
   </header>
@@ -45,8 +45,9 @@ for (const p of places) {
 
 <style>
   .crumbs a { color: inherit; text-decoration: none; }
-  .head { margin: 6px 0 24px; padding-bottom: 14px; border-bottom: 1px solid var(--rule); }
-  .sub { margin: 0; color: var(--ink-2); font-size: 1.05rem; }
+  .head { margin: 6px 0 28px; padding: 26px 26px 22px; background: var(--cat); color: var(--cat-ink, var(--ink)); border: var(--line); border-radius: 22px; box-shadow: var(--pop); }
+  .head h1 { color: inherit; font-size: clamp(3rem, 9vw, 6rem); letter-spacing: -.05em; margin: 0 0 6px; }
+  .sub { margin: 0; color: inherit; font-size: 1.1rem; font-weight: 600; }
   .jump { display: flex; flex-wrap: wrap; gap: 4px; margin-bottom: 20px; }
   .jump a { font: 600 .95rem var(--sans); text-decoration: none; padding: 2px 8px; border: 1px solid var(--rule); border-radius: 3px; background: var(--snow); }
   .group { margin-bottom: 24px; scroll-margin-top: 90px; }

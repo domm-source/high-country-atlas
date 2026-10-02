@@ -35,7 +35,9 @@ if (EMBED) {
 }
 if (!FLY) map.addControl(new maplibregl.NavigationControl({ visualizePitch: true }), 'top-right');
 if (!EMBED) map.addControl(new maplibregl.GeolocateControl({ positionOptions: { enableHighAccuracy: true }, trackUserLocation: true }), 'top-right');
-map.addControl(new maplibregl.ScaleControl({ unit: 'metric', maxWidth: 110 }), 'bottom-left');
+if (!FLY) map.addControl(new maplibregl.ScaleControl({ unit: 'metric', maxWidth: 110 }), 'bottom-left');
+// Embedded maps keep credits behind the small (i) button; MapLibre opens it by default, so close it once.
+if (EMBED) map.once('load', () => document.querySelector('.maplibregl-ctrl-attrib')?.classList.remove('maplibregl-compact-show'));
 if (MARKER) map.once('load', () => new maplibregl.Marker({ color: '#9c3d1b' }).setLngLat(map.getCenter()).addTo(map));
 
 // Homepage background: drift slowly around the starting point, unless the viewer prefers less motion.

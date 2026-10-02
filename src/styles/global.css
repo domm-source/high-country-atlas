@@ -1,97 +1,141 @@
-/* High Country — an old field-guide look: light paper, iron-oxide accents, warm serif headings. */
+/* High Country — "bold" direction: chunky grotesk type, ink outlines, flat colour blocks, hard shadows. */
 :root {
-  --paper: #f5f0e4;
-  --paper-2: #ece4d2;
-  --paper-3: #ddd2bb;
-  --ink: #2a1f16;
-  --ink-2: #5a4632;
-  --ink-3: #8a735a;
-  --rust: #9c3d1b;
-  --rust-dark: #7a2d12;
-  --leather: #6b4226;
-  --denim: #3d5a73;
-  --gum: #6f8068;
-  --ochre: #c8902f;
-  --snow: #f8f3e7;
-  --rule: rgba(90, 70, 50, .25);
+  /* Base */
+  --paper: #fbf8f1;
+  --paper-2: #f1ece1;
+  --paper-3: #e3dbcb;
+  --ink: #141210;
+  --ink-2: #3b3833;
+  --ink-3: #6f6a62;
+  --snow: #ffffff;
+  --rule: rgba(20, 18, 16, .16);
+  --line: 2px solid var(--ink);
+  --pop: 5px 5px 0 var(--ink);
 
-  --display: 'Fraunces', Georgia, serif;
-  --sans: 'Work Sans', system-ui, sans-serif;
-  --serif: 'Source Serif 4', Georgia, serif;
+  /* Colour blocks */
+  --orange: #ff5b2e;
+  --yellow: #ffcf3d;
+  --blue: #2f5bff;
+  --green: #1fae6b;
+  --pink: #ff9ec4;
+  --sky: #9fd3ff;
+  --mint: #b9efcf;
+  --lilac: #c9b6ff;
+  --sand: #f3dfb8;
 
-  /* Fine paper grain, drawn with an SVG noise filter. */
-  --grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .35 0 0 0 0 .25 0 0 0 0 .12 0 0 0 .05 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  /* Names the page styles already use */
+  --rust: #e2461a;
+  --rust-dark: #b8350f;
+  --leather: var(--blue);
+
+  --display: 'Bricolage Grotesque', 'Archivo', system-ui, sans-serif;
+  --sans: 'Archivo', system-ui, sans-serif;
+  --serif: 'Archivo', system-ui, sans-serif;
+  --grain: none;
 }
+
+/* One colour per category, used by cards, tags and listing headers. */
+[data-cat='huts'] { --cat: var(--orange); }
+[data-cat='campgrounds'] { --cat: var(--green); }
+[data-cat='walks'] { --cat: var(--blue); --cat-ink: #fff; }
+[data-cat='drives'] { --cat: var(--yellow); }
+[data-cat='rides'] { --cat: var(--pink); }
+[data-cat='peaks'] { --cat: var(--lilac); }
+[data-cat='lookouts'] { --cat: var(--sky); }
+[data-cat='picnic-areas'] { --cat: var(--mint); }
+[data-cat='attractions'] { --cat: var(--sand); }
+[data-cat='lakes'] { --cat: #6fb8ff; }
+[data-cat='towns'] { --cat: #ffb38a; }
 
 * { box-sizing: border-box; }
 html { background: var(--paper); }
 body {
-  margin: 0; color: var(--ink); font: 17px/1.6 var(--serif);
-  background: var(--paper) var(--grain);
-  -webkit-font-smoothing: antialiased;
+  margin: 0; color: var(--ink); font: 17px/1.6 var(--sans); background: var(--paper);
+  -webkit-font-smoothing: antialiased; font-variation-settings: 'wdth' 100;
 }
-a { color: var(--rust); text-decoration-thickness: 1px; text-underline-offset: 3px; }
+a { color: var(--ink); text-decoration: underline 2px var(--orange); text-underline-offset: 4px; }
 a:hover { color: var(--rust-dark); }
 img, iframe { max-width: 100%; }
+::selection { background: var(--yellow); }
 
-h1, h2, h3 { font-family: var(--display); font-weight: 600; line-height: 1.15; color: var(--ink); margin: 0 0 .4em; }
-h1 { font-size: clamp(2rem, 5vw, 3.2rem); }
-h2 { font-size: clamp(1.5rem, 3vw, 2rem); }
-h3 { font-size: 1.2rem; }
-.display { font-family: var(--display); font-weight: 500; letter-spacing: -.015em; }
+h1, h2, h3 { font-family: var(--display); font-weight: 800; line-height: 1; letter-spacing: -.03em; color: var(--ink); margin: 0 0 .4em; }
+h1 { font-size: clamp(2.6rem, 7vw, 5rem); }
+h2 { font-size: clamp(1.7rem, 3.4vw, 2.4rem); }
+h3 { font-size: 1.3rem; }
+.display { font-family: var(--display); font-weight: 800; letter-spacing: -.04em; }
+/* Squeezed caps labels — Archivo's condensed width. */
 .label {
-  font: 500 .74rem/1.2 var(--sans); letter-spacing: .12em; text-transform: uppercase; color: var(--ink-3);
+  font: 700 .8rem/1.2 var(--sans); font-stretch: 75%; font-variation-settings: 'wdth' 75;
+  letter-spacing: .06em; text-transform: uppercase; color: var(--ink);
 }
 
 /* ---------- Header ---------- */
-.site-header {
-  position: sticky; top: 0; z-index: 20;
-  background: color-mix(in srgb, var(--paper) 92%, transparent) var(--grain);
-  backdrop-filter: blur(6px);
-  border-bottom: 1px solid var(--rule);
+.site-header { position: sticky; top: 0; z-index: 20; background: var(--paper); border-bottom: var(--line); }
+.bar { max-width: 1240px; margin: 0 auto; padding: 10px 20px; display: flex; align-items: center; gap: 20px; }
+.wordmark {
+  display: flex; align-items: center; gap: 9px; font: 800 1.45rem/1 var(--display); letter-spacing: -.04em;
+  color: var(--ink); text-decoration: none; white-space: nowrap;
 }
-.bar { max-width: 1200px; margin: 0 auto; padding: 10px 20px; display: flex; align-items: center; gap: 22px; }
-.wordmark { font: 600 1.4rem/1 var(--display); color: var(--ink); text-decoration: none; white-space: nowrap; }
-.wordmark span { display: block; font: 500 .6rem/1.7 var(--sans); letter-spacing: .16em; text-transform: uppercase; color: var(--rust); }
-.site-header nav { display: flex; gap: 2px; flex: 1; flex-wrap: wrap; }
+.wordmark::before {
+  content: ''; width: 30px; height: 30px; border-radius: 50%; border: var(--line); flex: none;
+  background: var(--yellow) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M3 18l6-10 3.5 5 2.5-3.5L21 18z' fill='%23141210'/%3E%3C/svg%3E") center / 20px no-repeat;
+}
+.wordmark span { display: none; }
+.site-header nav { display: flex; gap: 4px; flex: 1; flex-wrap: wrap; }
 .site-header nav a {
-  font: 500 .92rem var(--sans); color: var(--ink-2); text-decoration: none; padding: 6px 10px; border-radius: 4px;
+  font: 700 .9rem var(--sans); font-stretch: 85%; font-variation-settings: 'wdth' 85; text-transform: uppercase; letter-spacing: .02em;
+  color: var(--ink); text-decoration: none; padding: 6px 12px; border-radius: 99px; border: 2px solid transparent;
 }
-.site-header nav a:hover, .site-header nav a[aria-current] { color: var(--rust); background: var(--paper-2); }
+.site-header nav a:hover { border-color: var(--ink); }
+.site-header nav a[aria-current] { background: var(--ink); color: var(--paper); }
 
 /* ---------- Layout ---------- */
-main { max-width: 1100px; margin: 0 auto; padding: 32px 20px 56px; }
+main { max-width: 1140px; margin: 0 auto; padding: 36px 20px 64px; }
 main.wide { max-width: none; padding: 0; }
-.rule { border: 0; border-top: 1px solid var(--rule); margin: 44px 0; }
+.rule { border: 0; border-top: var(--line); margin: 48px 0; }
 
 /* ---------- Cards, chips, buttons ---------- */
-.card {
-  background: var(--snow) var(--grain); border: 1px solid var(--rule); border-radius: 6px;
-  box-shadow: 0 1px 2px rgba(42, 31, 22, .06);
-}
+.card { background: var(--snow); border: var(--line); border-radius: 18px; box-shadow: var(--pop); }
 .btn {
-  display: inline-block; font: 600 .95rem var(--sans); text-decoration: none;
-  padding: 10px 18px; border-radius: 4px; border: 1px solid var(--rust); color: var(--snow); background: var(--rust);
+  display: inline-block; font: 800 1rem var(--sans); font-stretch: 110%; font-variation-settings: 'wdth' 110;
+  text-transform: uppercase; letter-spacing: .01em; text-decoration: none;
+  padding: 12px 22px; border-radius: 99px; border: var(--line); color: var(--ink); background: var(--yellow);
+  box-shadow: 3px 3px 0 var(--ink); transition: transform .1s, box-shadow .1s;
 }
-.btn:hover { color: var(--snow); background: var(--rust-dark); }
-.btn.ghost { background: rgba(248, 243, 231, .85); color: var(--rust); }
+.btn:hover { color: var(--ink); transform: translate(-2px, -2px); box-shadow: 5px 5px 0 var(--ink); }
+.btn:active { transform: translate(2px, 2px); box-shadow: 1px 1px 0 var(--ink); }
+.btn.ghost { background: var(--snow); }
 .chips { display: flex; flex-wrap: wrap; gap: 6px; padding: 0; margin: 0; list-style: none; }
-.chip { font: 400 .85rem var(--sans); background: var(--paper-2); border: 1px solid var(--rule); border-radius: 20px; padding: 2px 11px; }
+.chip { font: 600 .85rem var(--sans); background: var(--mint); border: var(--line); border-radius: 99px; padding: 3px 12px; }
+.tag {
+  display: inline-block; font: 800 .78rem var(--sans); font-stretch: 75%; font-variation-settings: 'wdth' 75; text-transform: uppercase;
+  letter-spacing: .05em; padding: 4px 11px; border: var(--line); border-radius: 99px;
+  background: var(--cat, var(--yellow)); color: var(--cat-ink, var(--ink)); text-decoration: none;
+}
 
-/* Ledger-style facts table */
+/* Facts table */
 .ledger { width: 100%; border-collapse: collapse; font-size: .95rem; }
-.ledger th { font: 500 .72rem var(--sans); letter-spacing: .1em; text-transform: uppercase; color: var(--ink-3); text-align: left; padding: 8px 12px 8px 0; vertical-align: top; width: 38%; }
-.ledger td { padding: 8px 0; }
-.ledger tr + tr > * { border-top: 1px dashed var(--rule); }
+.ledger th {
+  font: 700 .75rem var(--sans); font-stretch: 75%; font-variation-settings: 'wdth' 75; letter-spacing: .05em; text-transform: uppercase;
+  color: var(--ink-3); text-align: left; padding: 9px 12px 9px 0; vertical-align: top; width: 38%;
+}
+.ledger td { padding: 9px 0; font-weight: 500; }
+.ledger tr + tr > * { border-top: 2px solid var(--paper-2); }
 
 /* ---------- Footer ---------- */
-.site-footer { border-top: 1px solid var(--rule); padding: 28px 20px 40px; text-align: center; color: var(--ink-2); font-size: .85rem; }
-.site-footer p { max-width: 760px; margin: 10px auto 0; }
-.site-footer .caveat { font-style: italic; }
+.site-footer { background: var(--ink); color: #d8d3ca; padding: 44px 20px 52px; font-size: .85rem; }
+.site-footer::before {
+  content: 'High Country'; display: block; max-width: 1140px; margin: 0 auto 18px;
+  font: 800 clamp(2.6rem, 8vw, 5.5rem)/0.9 var(--display); letter-spacing: -.05em; color: var(--yellow);
+}
+.site-footer p { max-width: 1140px; margin: 10px auto 0; }
+.site-footer a { color: #fff; text-decoration-color: var(--orange); }
+.site-footer .caveat { color: #fff; font-weight: 600; }
 
 @media (max-width: 760px) {
   body { font-size: 16px; }
   .bar { flex-wrap: wrap; gap: 10px; padding: 10px 16px; }
   .site-header nav { order: 3; flex-basis: 100%; overflow-x: auto; flex-wrap: nowrap; }
-  main { padding: 24px 16px 48px; }
+  main { padding: 26px 16px 52px; }
 }
+@media (prefers-reduced-motion: reduce) { .btn, .card { transition: none; } }
