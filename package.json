@@ -5,9 +5,15 @@
   "scripts": {
     "dev": "astro dev",
     "build": "astro build",
-    "preview": "astro preview"
+    "preview": "astro preview",
+    "social": "node scripts/social/make.mjs"
   },
   "dependencies": {
     "astro": "^7.3.5"
+  },
+  "devDependencies": {
+    "d3-contour": "^4.0.2",
+    "d3-geo": "^3.1.1",
+    "pngjs": "^7.0.0"
   }
 }

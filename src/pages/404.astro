@@ -1,0 +1,21 @@
+---
+import Base from '../layouts/Base.astro';
+---
+<Base title="Page not found">
+  <section class="lost card">
+    <p class="tag" data-cat="huts">404</p>
+    <h1>Off the track.</h1>
+    <p>That page doesn’t exist — maybe it moved, or the link has a typo. Try searching above, or head back to familiar ground.</p>
+    <div class="actions">
+      <a class="btn" href="/">Home</a>
+      <a class="btn ghost" href="/map/">Open the atlas</a>
+    </div>
+  </section>
+</Base>
+
+<style>
+  .lost { max-width: 620px; margin: 40px auto; padding: 28px 30px 32px; }
+  .lost h1 { font-size: clamp(3rem, 9vw, 5rem); letter-spacing: -.05em; margin: 14px 0 10px; }
+  .lost p { font-size: 1.1rem; font-weight: 500; }
+  .actions { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 20px; }
+</style>

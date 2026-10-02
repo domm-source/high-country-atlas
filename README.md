@@ -27,6 +27,17 @@ The atlas also runs embedded: `/map/?embed&marker&theme=topo#zoom/lat/lng` (mini
 
 Hand-picked favourites live in `src/data/favourites.json`. Each entry becomes a page at `/favourites/<slug>/`, a pink heart on the atlas and a card on the homepage. Add `"draft": true` to hide one, and `"approx": true` when its pin is only roughly placed (the page says so). Coordinates are `[longitude, latitude]` — right-click a spot in Google Maps to copy them (they come out latitude first, so swap them).
 
+## Instagram posts and share image
+
+```bash
+npm run social                       # this week's set: hut, local favourite, track closures, peak of the month
+npm run social -- favourite <slug>   # one favourite, e.g. mystic-bike-park
+npm run social -- hut "Federation Hut"
+npm run social -- og                 # regenerate public/og/default.png, the link-preview image
+```
+
+Each post comes as `feed.png` (1080×1350), `story.png` (1080×1920) and `caption.txt` in `social/out/<date>/` (not committed). Backgrounds are contour lines drawn from real terrain around the place. The hut matches the homepage's hut of the week. Needs Google Chrome installed (`CHROME=/path/to/browser` to use another Chromium browser).
+
 ## Run locally
 
 ```bash

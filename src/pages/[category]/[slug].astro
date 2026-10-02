@@ -32,8 +32,34 @@ const zoom = isRoute ? 12.5 : p.category === 'towns' ? 12.5 : p.category === 'pe
 const atlasLink = `/map/#${zoom}/${lat}/${lng}`;
 const directions = `https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}`;
 const coordText = `${Math.abs(lat).toFixed(5)}° S, ${lng.toFixed(5)}° E`;
+
+// Structured data: what this place is, where it is, and where it sits in the site.
+const SCHEMA_TYPE = {
+  huts: 'LandmarksOrHistoricalBuildings', campgrounds: 'Campground', peaks: 'Mountain', lakes: 'LakeBodyOfWater',
+  towns: 'City', lookouts: 'TouristAttraction', attractions: 'TouristAttraction', favourites: 'TouristAttraction',
+  'picnic-areas': 'Park', walks: 'TouristAttraction', drives: 'TouristAttraction', rides: 'TouristAttraction',
+};
+const pageUrl = new URL(p.url, Astro.site);
+const jsonld = [
+  {
+    '@type': SCHEMA_TYPE[p.category] || 'Place', '@id': `${pageUrl}#place`, name: p.name, url: pageUrl,
+    description: curated ? p.blurb : intro,
+    geo: { '@type': 'GeoCoordinates', latitude: +lat.toFixed(5), longitude: +lng.toFixed(5), ...(p.ele ? { elevation: p.ele } : {}) },
+    address: { '@type': 'PostalAddress', addressLocality: p.town || p.nearestTown?.name, addressRegion: 'VIC', addressCountry: 'AU' },
+    containedInPlace: { '@type': 'Place', name: 'Victorian High Country' },
+    ...(curated && p.website ? { sameAs: [p.website] } : {}),
+  },
+  {
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      { '@type': 'ListItem', position: 1, name: 'Home', item: new URL('/', Astro.site) },
+      { '@type': 'ListItem', position: 2, name: cat.many, item: new URL(`/${cat.id}/`, Astro.site) },
+      { '@type': 'ListItem', position: 3, name: p.name, item: pageUrl },
+    ],
+  },
+];
 ---
-<Base title={p.name} description={`${p.name} — ${cat.one.toLowerCase()} ${where}, in Victoria’s High Country. Map, directions, conditions and what’s nearby.`}>
+<Base title={p.name} jsonld={jsonld} description={`${p.name} — ${cat.one.toLowerCase()} ${where}, in Victoria’s High Country. Map, directions, conditions and what’s nearby.`}>
   <nav class="crumbs label" aria-label="Breadcrumb"><a href="/">Home</a> › <a href={`/${cat.id}/`}>{cat.many}</a></nav>
   <header class="head" data-cat={cat.id}>
     <h1>{p.name}</h1>
